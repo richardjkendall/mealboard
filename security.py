@@ -4,9 +4,28 @@ Contains code which manages access to API routes
 """
 import logging
 from functools import wraps
-from flask import request, g
+from flask import request
+
+from models.user_model import UserModel
+from error_handler import SystemFailureException, BadRequestException
 
 logger = logging.getLogger(__name__)
+
+def valid_user(f):
+  """
+  Decorator to check that a request has valid user
+  """
+  @wraps(f)
+  def decorated_function(username, groups, *args, **kwargs):
+    logger.info("valid_user decorator has started")
+    if not username:
+      raise SystemFailureException("Call to valid_user with no username")
+    user = UserModel.query.filter(UserModel.username == username).first()
+    if not user:
+      raise BadRequestException("User is not registered")
+    return f(username, groups, *args, **kwargs)
+  
+  return decorated_function
 
 def secured(f):
   """

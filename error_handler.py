@@ -17,6 +17,11 @@ class AccessDeniedException(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
 
+class ObjectNotFoundException(Exception):
+    """Class for ObjectNotFoundException"""
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
+
 def error_handler(f):
     """
     Function to manage errors coming back to webservice calls
@@ -33,6 +38,8 @@ def error_handler(f):
             return exception_to_json_response(err, 400)
         except AccessDeniedException as err:
             return exception_to_json_response(err, 401)
+        except ObjectNotFoundException as err:
+            return exception_to_json_response(err, 404)
         except SystemFailureException as err:
             return exception_to_json_response(err, 500)
         #except Exception as err:

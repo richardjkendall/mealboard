@@ -4,9 +4,14 @@ Useful bits of code
 import logging
 import sys
 import random
+from functools import wraps
+
 from flask import make_response, jsonify
 
 logger = logging.getLogger(__name__)
+
+def must_be_json():
+  pass
 
 def format_sse(data: str, event=None) -> str:
   msg = f'data: {data}\n\n'
