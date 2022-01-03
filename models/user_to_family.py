@@ -14,9 +14,9 @@ class UserToFamilyModel(db.Model):
 
   id = db.Column(db.Integer, index=True, primary_key=True)
   family_id = db.Column(db.Integer, db.ForeignKey('family.id'), index=True, nullable=False)
-  family = db.relationship('FamilyModel', backref=db.backref('family', lazy=True))
+  #family = db.relationship('FamilyModel', backref=db.backref('family', lazy=True))
   user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=False)
-  user = db.relationship('UserModel', backref=db.backref('user', lazy=True))
+  #user = db.relationship('UserModel', backref=db.backref('user', lazy=True))
   role = db.Column(db.Enum(UserRoleEnum), nullable=False)
 
 class UserToFamilySchema(ma.Schema):

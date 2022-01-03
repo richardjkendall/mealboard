@@ -3,7 +3,7 @@ from marshmallow_enum import EnumField
 
 from models.shared import db, ma
 
-from models.week_schema import WeekSchema
+from models.week_model import WeekSchema
 
 import enum
 
@@ -28,4 +28,4 @@ class BoardSchema(ma.Schema):
   scope = EnumField(BoardScopeEnum, by_value=True)
   
   class Meta:
-    fields = ('id', 'board_name', 'owning_user_id', 'scope', 'family_id')
+    fields = ('id', 'board_name', 'owning_user_id', 'scope', 'family_id', 'weeks')

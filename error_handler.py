@@ -1,6 +1,5 @@
 from functools import wraps
-
-from utils import exception_to_json_response
+from flask import make_response, jsonify
 
 class BadRequestException(Exception):
     """Class for BadRequestException"""
@@ -21,6 +20,19 @@ class ObjectNotFoundException(Exception):
     """Class for ObjectNotFoundException"""
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
+
+def exception_to_json_response(exception, code):
+    """
+    Turns an exception into a JSON payload to respond to a service call
+    """
+    payload = {
+        "error": type(exception).__name__,
+        "message": str(exception),
+        "code": code
+    }
+    resp = make_response(jsonify(payload), code)
+    resp.headers["Content-type"] = "application/json"
+    return resp
 
 def error_handler(f):
     """

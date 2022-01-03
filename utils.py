@@ -6,12 +6,25 @@ import sys
 import random
 from functools import wraps
 
-from flask import make_response, jsonify
+from flask import make_response, jsonify, request
+
+from error_handler import error_handler
 
 logger = logging.getLogger(__name__)
 
-def must_be_json():
-  pass
+def must_be_json(f):
+  """
+  Decorator to check that a request is JSON
+  """
+  @wraps(f)
+  def decorated_function(*args, **kwargs):
+    logger.info("must_be_json decorator has started")
+    if not request.json:
+      logger.info("Sending exception as request should be JSON")
+      raise error_handler.BadRequestException("Request body should be JSON")
+    return f(*args, **kwargs)
+  
+  return decorated_function
 
 def format_sse(data: str, event=None) -> str:
   msg = f'data: {data}\n\n'
@@ -54,19 +67,6 @@ def generic_exception_json_response(code):
     payload = {
         "error": "TechnicalException",
         "message": "An unknown error occured",
-        "code": code
-    }
-    resp = make_response(jsonify(payload), code)
-    resp.headers["Content-type"] = "application/json"
-    return resp
-
-def exception_to_json_response(exception, code):
-    """
-    Turns an exception into a JSON payload to respond to a service call
-    """
-    payload = {
-        "error": type(exception).__name__,
-        "message": str(exception),
         "code": code
     }
     resp = make_response(jsonify(payload), code)

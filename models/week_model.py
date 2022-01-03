@@ -9,7 +9,7 @@ class WeekModel(db.Model):
   week_start_date = db.Column(db.DateTime(), nullable=False)
   week_special_name = db.Column(db.String(120), nullable=True)
   board_id = db.Column(db.Integer, db.ForeignKey('board.id'), index=True, nullable=False)
-  board = db.relationship('BoardModel', backref=db.backref('board', lazy=True))
+  board = db.relationship('BoardModel', backref=db.backref('weeks', lazy=True))
 
 class WeekSchema(ma.Schema):
   

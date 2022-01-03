@@ -2,7 +2,8 @@ from marshmallow import fields
 
 from models.shared import db, ma
 from models.meal_model import MealSchema
-from models.user_to_family import UserToFamilySchema
+from models.user_model import UserSchema
+#from models.user_to_family import UserToFamilySchema
 from models.board_model import BoardSchema
 
 class FamilyModel(db.Model):
@@ -15,9 +16,9 @@ class FamilyModel(db.Model):
   other_users = db.relationship('UserModel', secondary='user2family', back_populates='families')
 
 class FamilySchema(ma.Schema):
-  #other_users = fields.Nested(UserToFamilySchema, many=True)
+  other_users = fields.Nested(UserSchema, many=True)
   meals = fields.Nested(MealSchema, many=True)
   boards = fields.Nested(BoardSchema, many=True)
   
   class Meta:
-    fields = ('id', 'family_name', 'primary_user_id', 'other_users', 'meals', 'boards')
+    fields = ('id', 'family_name', 'primary_user_id', 'meals', 'boards')
