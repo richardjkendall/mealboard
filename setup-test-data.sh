@@ -29,3 +29,17 @@ curl -X PUT http://localhost:5000/family/1/board -d @test-data/create_board.json
 
 curl -X PUT http://localhost:5000/family/1/board -d @test-data/create_board_2.json --header "Content-Type: application/json"
 curl -X PATCH http://localhost:5000/family/1/board/2 -d @test-data/update_board.json --header "Content-Type: application/json"
+
+# this should fail
+curl -X PATCH http://localhost:5000/family/1/board/2 -d @test-data/update_board.json \
+  --header "Content-Type: application/json" \
+  --header "x-remote-user: rjk"
+
+curl -X PUT http://localhost:5000/family/1/board/1/week -d @test-data/create_week_1.json --header "Content-Type: application/json"
+
+# this should fail
+curl -X PUT http://localhost:5000/family/1/board/2/week -d @test-data/create_week_1.json \
+  --header "Content-Type: application/json" \
+  --header "x-remote-user: rjk"
+
+curl -X PUT http://localhost:5000/family/1/meal -d @test-data/create_meal.json --header "Content-Type: application/json"

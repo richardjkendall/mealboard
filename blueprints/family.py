@@ -1,20 +1,21 @@
 import logging
-from datetime import datetime
-import logging
 from sqlalchemy import or_, and_
 from flask import Blueprint, request
 from flask.json import jsonify
-from werkzeug.datastructures import _omd_bucket
+import dateutil.parser
 
 from models.family_model import FamilyModel, FamilySchema
 from models.user_to_family import UserToFamilyModel, UserToFamilySchema, UserRoleEnum
-from models.user_model import UserModel
+from models.user_model import UserModel, UserSchema
 from models.board_model import BoardModel, BoardSchema, BoardScopeEnum
+from models.week_model import WeekModel, WeekSchema
+from models.meal_model import MealModel, MealSchema
+from models.ingredient_model import IngredientModel
 from models.shared import db
 
 from utils import must_be_json
-from security import secured, valid_user, user_can_edit_family, user_can_read_family
-from error_handler import error_handler, BadRequestException, ObjectNotFoundException
+from security import secured, valid_user, user_can_edit_family, user_can_read_family, user_can_see_board
+from error_handler import AccessDeniedException, error_handler, BadRequestException, ObjectNotFoundException
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +23,13 @@ family = Blueprint('family', __name__)
 family_schema = FamilySchema()
 families_schema = FamilySchema(many=True)
 user_to_family_schema = UserToFamilySchema()
+users_schema = UserSchema(many=True)
 board_schema = BoardSchema()
 boards_schema = BoardSchema(many=True)
+week_schema = WeekSchema()
+weeks_schema = WeekSchema(many=True)
+meal_schema = MealSchema()
+meals_schema = MealSchema(many=True)
 
 @family.route("/", methods=["GET"])
 @error_handler
@@ -46,6 +52,45 @@ def get_all_families(username, groups, user_id):
 def get_family(username, groupds, user_id, family_id):
   family = FamilyModel.query.get_or_404(family_id)
   return family_schema.jsonify(family)
+
+@family.route("/<int:family_id>/meal", methods=["PUT"])
+@error_handler
+@secured
+@valid_user
+@user_can_edit_family
+@must_be_json
+def create_meal(username, groups, user_id, family_id):
+  family = FamilyModel.query.get_or_404(family_id)
+  if not "meal_name" in request.json:
+    raise BadRequestException("Please provide meal name")
+  new_meal = MealModel(
+    meal_name = request.json["meal_name"],
+    family_id = family.id
+  )
+  if "portions" in request.json:
+    setattr(new_meal, "portions", request.json["portions"])
+  if "ingredients" in request.json:
+    for ingredient in request.json["ingredients"]:
+      new_ingredient = IngredientModel(
+        ingredient_name = ingredient["ingredient_name"],
+        quantity = ingredient["quantity"],
+        unit = ingredient["unit"]
+      )
+      new_meal.ingredients.append(new_ingredient)
+  db.session.add(new_meal)
+  db.session.commit()
+  meal = MealModel.query.get(new_meal.id)
+  return meal_schema.jsonify(meal)
+
+
+@family.route("/<int:family_id>/other_users", methods=["GET"])
+@error_handler
+@secured
+@valid_user
+@user_can_read_family
+def get_other_users(username, groups, user_id, family_id):
+  family = FamilyModel.query.get_or_404(family_id)
+  return jsonify(users_schema.dump(family.other_users))
 
 @family.route("/<int:family_id>/other_users/<int:other_user_id>", methods=["DELETE"])
 @error_handler
@@ -122,41 +167,89 @@ def get_boards(username, groups, user_id, family_id):
 @secured
 @valid_user
 @user_can_read_family
+@user_can_see_board
 def get_board(username, groups, user_id, family_id, board_id):
   # get the board
   board = BoardModel.query.filter(BoardModel.id == board_id, BoardModel.family_id == family_id).first()
   if not board:
-    raise ObjectNotFoundException("No such board is found")
-  # check the board can be seen by this user
-  if (board.owning_user_id == user_id and board.scope == BoardScopeEnum.PRIVATE) or (board.family_id == family_id and (board.scope == BoardScopeEnum.FAMILY or board.scope == BoardScopeEnum.PUBLIC)):
-    return board_schema.jsonify(board)
+    raise ObjectNotFoundException("Board not found")
+  return board_schema.jsonify(board)
+
+@family.route("/<int:family_id>/board/<int:board_id>/week", methods=["GET"])
+@error_handler
+@secured
+@valid_user
+@user_can_read_family
+@user_can_see_board
+def get_weeks(username, groups, user_id, family_id, board_id):
+  # get the board
+  board = BoardModel.query.filter(BoardModel.id == board_id, BoardModel.family_id == family_id).first()
+  if not board:
+    raise ObjectNotFoundException("Board not found")
+  return jsonify(weeks_schema.dump(board.weeks))
+
+@family.route("/<int:family_id>/board/<int:board_id>/week", methods=["PUT"])
+@error_handler
+@secured
+@valid_user
+@user_can_edit_family
+@user_can_see_board
+@must_be_json
+def create_week(username, groups, user_id, family_id, board_id):
+  # get the board
+  board = BoardModel.query.filter(BoardModel.id == board_id, BoardModel.family_id == family_id).first()
+  if not board:
+    raise ObjectNotFoundException("Board not found")
+  new_week = WeekModel(
+    board_id = board.id,
+    week_start_date = dateutil.parser.isoparse(request.json["week_start_date"])
+  )
+  if "week_special_name" in request.json:
+    setattr(new_week, "week_special_name", request.json["week_special_name"])
+  db.session.add(new_week)
+  db.session.commit()
+  week = WeekModel.query.get(new_week.id)
+  return week_schema.jsonify(week)
+
+@family.route("/<int:family_id>/board/<int:board_id>", methods=["DELETE"])
+@error_handler
+@secured
+@valid_user
+@user_can_edit_family
+@user_can_see_board
+def delete_board(username, groups, user_id, family_id, board_id):
+  # get the board
+  board = BoardModel.query.filter(BoardModel.id == board_id, BoardModel.family_id == family_id).first()
+  if not board:
+    raise ObjectNotFoundException("Board not found")
+  # check that current user is the owner
+  if board.owning_user_id == board_id:
+    db.session.delete(board)
+    db.session.commit()
   else:
-    raise ObjectNotFoundException("No such board is found")
+    raise AccessDeniedException("You must be the owner to delete a board")
 
 @family.route("/<int:family_id>/board/<int:board_id>", methods=["PATCH"])
 @error_handler
 @secured
 @valid_user
 @user_can_edit_family
+@user_can_see_board
 @must_be_json
 def edit_board(username, groups, user_id, family_id, board_id):
   # get the board
   board = BoardModel.query.filter(BoardModel.id == board_id, BoardModel.family_id == family_id).first()
   if not board:
-    raise ObjectNotFoundException("No such board is found")
-  # check the board can be edited by this user
-  if (board.owning_user_id == user_id and board.scope == BoardScopeEnum.PRIVATE) or (board.family_id == family_id and (board.scope == BoardScopeEnum.FAMILY or board.scope == BoardScopeEnum.PUBLIC)):
-    editable_fields = ["board_name", "scope"]
-    for field in editable_fields:
-      if request.json.get(field):
-        if field == "scope":
-          setattr(board, field, BoardScopeEnum(request.json[field]).name)
-        else:
-          setattr(board, field, request.json[field])
-    db.session.commit()
-    return board_schema.jsonify(board)
-  else:
-    raise ObjectNotFoundException("No such board is found")
+    raise ObjectNotFoundException("Board not found")
+  editable_fields = ["board_name", "scope"]
+  for field in editable_fields:
+    if request.json.get(field):
+      if field == "scope":
+        setattr(board, field, BoardScopeEnum(request.json[field]).name)
+      else:
+        setattr(board, field, request.json[field])
+  db.session.commit()
+  return board_schema.jsonify(board)
 
 @family.route("/<int:family_id>/board", methods=["PUT"])
 @error_handler

@@ -1,0 +1,21 @@
+{
+  "meal_name": "Pizza",
+  "portions": 4,
+  "ingredients": [
+    {
+      "ingredient_name": "dough",
+      "quantity": "200",
+      "unit": "g"
+    },
+    {
+      "ingredient_name": "tomato sauce",
+      "quantity": "0.5",
+      "unit": "cup"
+    },
+    {
+      "ingredient_name": "cheese",
+      "quantity": "1",
+      "unit": "cup"
+    }
+  ]
+}

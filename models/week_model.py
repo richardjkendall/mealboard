@@ -6,7 +6,7 @@ class WeekModel(db.Model):
   __tablename__ = "week"
 
   id = db.Column(db.Integer, index=True, primary_key=True)
-  week_start_date = db.Column(db.DateTime(), nullable=False)
+  week_start_date = db.Column(db.DateTime(), index=True, nullable=False)
   week_special_name = db.Column(db.String(120), nullable=True)
   board_id = db.Column(db.Integer, db.ForeignKey('board.id'), index=True, nullable=False)
   board = db.relationship('BoardModel', backref=db.backref('weeks', lazy=True))

@@ -21,4 +21,4 @@ class FamilySchema(ma.Schema):
   boards = fields.Nested(BoardSchema, many=True)
   
   class Meta:
-    fields = ('id', 'family_name', 'primary_user_id', 'meals', 'boards')
+    fields = ('id', 'family_name', 'primary_user_id', 'boards')

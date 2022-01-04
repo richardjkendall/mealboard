@@ -5,13 +5,34 @@ Contains code which manages access to API routes
 import logging
 from functools import wraps
 from flask import request
+from sqlalchemy import or_
 
 from models.user_model import UserModel
 from models.user_to_family import UserToFamilyModel, UserRoleEnum
 from models.family_model import FamilyModel
+from models.board_model import BoardModel, BoardScopeEnum
 from error_handler import ObjectNotFoundException, SystemFailureException, BadRequestException
 
 logger = logging.getLogger(__name__)
+
+def user_can_see_board(f):
+  """
+  Decorator to check that a user can see a board
+  """
+  @wraps(f)
+  def decorated_function(username, groups, user_id, family_id, board_id, *args, **kwargs):
+    logger.info("user_can_see_board decorator has started, checking if board is private and user owns it")
+    board = BoardModel.query.filter(BoardModel.family_id == family_id, BoardModel.id == board_id, BoardModel.owning_user_id == user_id, BoardModel.scope == BoardScopeEnum.PRIVATE).first()
+    if board:
+      logger.info("Board is private and owned by this user")
+      return f(username, groups, user_id, family_id, board_id, *args, **kwargs)
+    board = BoardModel.query.filter(BoardModel.family_id == family_id, BoardModel.id == board_id, or_(BoardModel.scope == BoardScopeEnum.FAMILY, BoardModel.scope == BoardScopeEnum.PUBLIC)).first()
+    if board:
+      logger.info("Board scope is family or public")
+      return f(username, groups, user_id, family_id, board_id, *args, **kwargs)
+    logger.info("User should not be able to see the view")
+    raise ObjectNotFoundException("Board not found")
+  return decorated_function
 
 def user_can_read_family(f):
   """
