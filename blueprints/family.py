@@ -11,6 +11,7 @@ from models.board_model import BoardModel, BoardSchema, BoardScopeEnum
 from models.week_model import WeekModel, WeekSchema
 from models.meal_model import MealModel, MealSchema
 from models.ingredient_model import IngredientModel
+from models.week_to_meal import WeekToMealModel, WeekToMealSchema
 from models.shared import db
 
 from utils import must_be_json
@@ -20,16 +21,18 @@ from error_handler import AccessDeniedException, error_handler, BadRequestExcept
 logger = logging.getLogger(__name__)
 
 family = Blueprint('family', __name__)
-family_schema = FamilySchema()
-families_schema = FamilySchema(many=True)
+family_schema = FamilySchema(exclude=["boards.weeks"])
+families_schema = FamilySchema(many=True, exclude=["boards.weeks"])
 user_to_family_schema = UserToFamilySchema()
 users_schema = UserSchema(many=True)
-board_schema = BoardSchema()
-boards_schema = BoardSchema(many=True)
-week_schema = WeekSchema()
-weeks_schema = WeekSchema(many=True)
+board_schema = BoardSchema(exclude=["weeks.meals"])
+boards_schema = BoardSchema(many=True, exclude=["weeks.meals"])
+week_schema = WeekSchema(exclude=["meals.meal.ingredients"])
+weeks_schema = WeekSchema(many=True, exclude=["meals.meal.ingredients"])
 meal_schema = MealSchema()
-meals_schema = MealSchema(many=True)
+meals_schema = MealSchema(many=True, exclude=["ingredients"])
+week_to_meal_schema = WeekToMealSchema()
+week_to_meals_schema = WeekToMealSchema(many=True, exclude=["meal.ingredients"])
 
 @family.route("/", methods=["GET"])
 @error_handler
@@ -52,6 +55,26 @@ def get_all_families(username, groups, user_id):
 def get_family(username, groupds, user_id, family_id):
   family = FamilyModel.query.get_or_404(family_id)
   return family_schema.jsonify(family)
+
+@family.route("/<int:family_id>/meal", methods=["GET"])
+@error_handler
+@secured
+@valid_user
+@user_can_read_family
+def get_meals(username, groups, user_id, family_id):
+  family = FamilyModel.query.get_or_404(family_id)
+  return jsonify(meals_schema.dump(family.meals))
+
+@family.route("/<int:family_id>/meal/<int:meal_id>", methods=["GET"])
+@error_handler
+@secured
+@valid_user
+@user_can_read_family
+def get_meal(username, groups, user_id, family_id, meal_id):
+  meal = MealModel.query.filter(MealModel.family_id == family_id, MealModel.id == meal_id).first()
+  if not meal:
+    raise ObjectNotFoundException("Meal not found")
+  return meal_schema.jsonify(meal)
 
 @family.route("/<int:family_id>/meal", methods=["PUT"])
 @error_handler
@@ -188,6 +211,35 @@ def get_weeks(username, groups, user_id, family_id, board_id):
     raise ObjectNotFoundException("Board not found")
   return jsonify(weeks_schema.dump(board.weeks))
 
+@family.route("/<int:family_id>/board/<int:board_id>/week/<int:week_id>", methods=["GET"])
+@error_handler
+@secured
+@valid_user
+@user_can_read_family
+@user_can_see_board
+def get_week(username, groups, user_id, family_id, board_id, week_id):
+  # get the week
+  week = WeekModel.query.filter(WeekModel.id == week_id, WeekModel.board_id == board_id).first()
+  if not week:
+    raise ObjectNotFoundException("Week not found")
+  return week_schema.jsonify(week)
+
+@family.route("/<int:family_id>/board/<int:board_id>/week/<int:week_id>", methods=["PATCH"])
+@error_handler
+@secured
+@valid_user
+@user_can_edit_family
+@user_can_see_board
+@must_be_json
+def change_week(username, groups, user_id, family_id, board_id, week_id):
+  week = WeekModel.query.filter(WeekModel.id == week_id, WeekModel.board_id == board_id).first()
+  if not week:
+    raise ObjectNotFoundException("Week not found")
+  if "week_special_name" in request.json:
+    setattr(week, "week_special_name", request.json["week_special_name"])
+  db.session.commit()
+  return week_schema.jsonify(week)
+
 @family.route("/<int:family_id>/board/<int:board_id>/week", methods=["PUT"])
 @error_handler
 @secured
@@ -210,6 +262,69 @@ def create_week(username, groups, user_id, family_id, board_id):
   db.session.commit()
   week = WeekModel.query.get(new_week.id)
   return week_schema.jsonify(week)
+
+@family.route("/<int:family_id>/board/<int:board_id>/week/<int:week_id>/meal", methods=["GET"])
+@error_handler
+@secured
+@valid_user
+@user_can_read_family
+@user_can_see_board
+def get_meals_for_week(username, groups, user_id, family_id, board_id, week_id):
+  # get the week
+  week = WeekModel.query.filter(WeekModel.id == week_id, WeekModel.board_id == board_id).first()
+  if not week:
+    raise ObjectNotFoundException("Week not found")
+  return jsonify(week_to_meals_schema.dump(week.meals))
+
+@family.route("/<int:family_id>/board/<int:board_id>/week/<int:week_id>/meal/<int:week_to_meal_id>", methods=["GET"])
+@error_handler
+@secured
+@valid_user
+@user_can_read_family
+@user_can_see_board
+def get_meal_for_week(username, groups, user_id, family_id, board_id, week_id, week_to_meal_id):
+  # get the week
+  week = WeekModel.query.filter(WeekModel.id == week_id, WeekModel.board_id == board_id).first()
+  if not week:
+    raise ObjectNotFoundException("Week not found")
+  week_to_meal = WeekToMealModel.query.filter(WeekToMealModel.week_id==week_id, WeekToMealModel.id == week_to_meal_id).first()
+  if not week_to_meal:
+    raise ObjectNotFoundException("Meal not found")
+  return week_to_meal_schema.jsonify(week_to_meal)
+
+@family.route("/<int:family_id>/board/<int:board_id>/week/<int:week_id>/meal", methods=["PUT", "POST"])
+@error_handler
+@secured
+@valid_user
+@user_can_edit_family
+@user_can_see_board
+@must_be_json
+def add_meal_to_week(username, groups, user_id, family_id, board_id, week_id):
+  # get the week
+  week = WeekModel.query.filter(WeekModel.id == week_id, WeekModel.board_id == board_id).first()
+  if not week:
+    raise ObjectNotFoundException("Week not found")
+  # need to check that mandatory fields are present
+  if not "meal_id" in request.json:
+    raise BadRequestException("'meal_id' attribute is not present in the request")
+  if not "day" in request.json:
+    raise BadRequestException("'day' attribute is not present in the request")
+  if not "meal_slot" in request.json:
+    raise BadRequestException("'meal_slot' attribute is not present in the request")
+  meal_id = request.json["meal_id"]
+  meal = MealModel.query.filter(MealModel.id == meal_id, MealModel.family_id == family_id).first()
+  if not meal:
+    raise ObjectNotFoundException("Meal not found")
+  # all attributes are here
+  new_week_to_meal = WeekToMealModel(
+    week_id = week_id,
+    meal_id = meal.id,
+    meal_slot = request.json["meal_slot"],
+    day = dateutil.parser.isoparse(request.json["day"])
+  )
+  db.session.add(new_week_to_meal)
+  db.session.commit()
+  return week_to_meal_schema.jsonify(new_week_to_meal)
 
 @family.route("/<int:family_id>/board/<int:board_id>", methods=["DELETE"])
 @error_handler

@@ -11,6 +11,8 @@ class MealModel(db.Model):
     family_id = db.Column(db.Integer, db.ForeignKey('family.id'), index=True, nullable=False)
     family = db.relationship('FamilyModel', backref=db.backref('meals', lazy=True))
     portions = db.Column(db.Integer, nullable=True)
+    
+    weeks = db.relationship('WeekModel', secondary='week2meal')
 
 
 class MealSchema(ma.Schema):

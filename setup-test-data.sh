@@ -18,6 +18,8 @@ curl -X PUT http://localhost:5000/user/ -d @test-data/create_user.json \
 
 # create the family
 curl -X PUT http://localhost:5000/family/ -d @test-data/create_family.json --header "Content-Type: application/json"
+curl -X PUT http://localhost:5000/family/ -d @test-data/create_family_2.json --header "Content-Type: application/json"
+
 # add user rjk to family as edit user
 curl -X PUT http://localhost:5000/family/1/other_users/2 -d @test-data/create_user2family.json --header "Content-Type: application/json"
 
@@ -43,3 +45,4 @@ curl -X PUT http://localhost:5000/family/1/board/2/week -d @test-data/create_wee
   --header "x-remote-user: rjk"
 
 curl -X PUT http://localhost:5000/family/1/meal -d @test-data/create_meal.json --header "Content-Type: application/json"
+curl -X PUT http://localhost:5000/family/1/board/1/week/1/meal -d @test-data/create_week_to_meal.json --header "Content-Type: application/json"

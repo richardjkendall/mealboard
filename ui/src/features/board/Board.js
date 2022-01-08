@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 import { selectDays, selectMeals } from './boardSlice';
 
@@ -51,11 +51,11 @@ export default function Board(props) {
   const days = useSelector(selectDays);
   const meals = useSelector(selectMeals);
 
-  const DayHeaders = days.map(day => <WeekHeader><p>{day}</p></WeekHeader>);
+  const DayHeaders = days.map(day => <WeekHeader key={"week_" + day}><p>{day}</p></WeekHeader>);
   const MealRows = meals.map(meal => {
-    const mealDays = days.map(day => <MealCell></MealCell>);
+    const mealDays = days.map(day => <MealCell key={"mealday_" + meal + "_" + day}></MealCell>);
     return (
-      <MealRow>
+      <MealRow key={"meal_" + meal}>
         <MealHeaderCell><p>{meal}</p></MealHeaderCell>
         {mealDays}
       </MealRow>
