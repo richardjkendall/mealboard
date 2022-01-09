@@ -2,7 +2,14 @@ import React from 'react';
 import styled from 'styled-components';
 import { useSelector } from 'react-redux';
 
-import { selectDays, selectMeals } from './boardSlice';
+import {
+  selectedFamily
+} from '../family/familySlice';
+
+import { 
+  selectDays, 
+  selectMeals 
+} from './boardSlice';
 
 const Row = styled.div`
   display: flex;
@@ -47,6 +54,27 @@ const MealHeaderCell = styled(MealCell)`
   }
 `
 
+const MealsTray = styled.div`
+  width: 100vw;
+`
+
+const MealsTrayHeader = styled.div`
+  width: 100%;
+  background-color: #efefef;
+  border-radius: 10px;
+  height: 40px;
+  
+  p:first-child {
+    float: left;
+    display: inline;
+  }
+
+  /*div:last-child {
+    float: right;
+    display: inline;
+  }*/
+`
+
 export default function Board(props) {
   const days = useSelector(selectDays);
   const meals = useSelector(selectMeals);
@@ -69,6 +97,15 @@ export default function Board(props) {
         {DayHeaders}
       </Row>
       {MealRows}
+      <MealsTray>
+        <MealsTrayHeader>
+          <p>Meals</p>
+          <div>
+            <p>Search</p>
+          </div>
+        </MealsTrayHeader>
+
+      </MealsTray>
     </div>
   )
 }

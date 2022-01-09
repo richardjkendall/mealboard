@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import moment from "moment";
 import { useSelector, useDispatch } from 'react-redux';
 
 import { 
@@ -12,7 +13,8 @@ import {
 } from './familySlice';
 
 import {
-  fetchBoard
+  fetchBoard,
+  selectSelectedWeek
 } from '../board/boardSlice';
 
 const NavContainer = styled.div`
@@ -36,11 +38,21 @@ const NavSelect = styled.select`
   margin-right: 5px;
 `
 
+const WeekSelector = styled.div`
+  display: flex;
+
+  button {
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+`
+
 export default function NavBar(props) {
   const dispatch = useDispatch();
   const families = useSelector(selectFamilies);
   const selectedFam = useSelector(selectedFamily);
   const selected_Board = useSelector(selectedBoard);
+  const selectedWeek = useSelector(selectSelectedWeek);
 
   const [loadPage] = useState(0);
 
@@ -53,10 +65,16 @@ export default function NavBar(props) {
       family_id: selectedFam.id,
       board_id: selected_Board.id
     }));
-  }, [selected_Board, dispatch]);
+  }, [selected_Board.id, selectedFam.id, dispatch]);
 
   const familyOptions = families.map(family => <option key={"family_" + family.id} value={family.id}>{family.family_name}</option>);
   const boardOptions = families.length > 0 && selectedFam.boards.map(board => <option key={"board_" + board.id} value={board.id}>{board.board_name}</option>);
+  const currentWeek = Object.keys(selectedWeek).length !== 0 && <WeekSelector>
+    <button>-</button>
+    <p>Week {moment(selectedWeek.week_start_date).format("w YYYY")}</p>
+    <button>+</button>
+  </WeekSelector>
+
 
   console.log("selected family", selectedFam);
 
@@ -91,6 +109,8 @@ export default function NavBar(props) {
           {boardOptions}
         </NavSelect>
         }
+        <NavDivider/>
+        {currentWeek}
       </NavContainer>
     </div>
   )

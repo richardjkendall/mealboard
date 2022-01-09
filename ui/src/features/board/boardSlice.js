@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from "axios";
+import moment from "moment";
 
 var API_BASE = function() {
   if(window.location.hostname === "localhost") {
@@ -24,6 +25,7 @@ export const boardSlice = createSlice({
     loading: 'idle', 
     error: '',
     board: {},
+    selectedWeek: {},
     week: {},
     meals: [
       "Breakfast",
@@ -56,7 +58,30 @@ export const boardSlice = createSlice({
       state.loading = "idle";
       state.error = "";
       state.board = action.payload;
-      
+      // get the closest week
+      state.board.weeks.sort((a, b) => {
+        var da = moment(a.week_start_date);
+        var db = moment(b.week_start_date);
+        var dn = moment();
+        var diffa = Math.abs(da.diff(dn, 'days'));
+        var diffb = Math.abs(db.diff(dn, 'days'));
+        console.log("diffa", diffa, "diffb", diffb);
+        if(diffa === diffb) {
+          return 0;
+        } else {
+          if(diffa < diffb) {
+            return -1;
+          } else {
+            return 1;
+          }
+        }
+      });
+      console.log("weeks sorted", state.board.weeks);
+      if(state.board.weeks.length > 0) {
+        state.selectedWeek = state.board.weeks[0];
+      } else {
+        state.selectedWeek = {};
+      }
     },
     [fetchBoard.pending]: state => {
       state.loading = "yes";
@@ -72,5 +97,8 @@ export const { switchToAll, switchToRunning, switchToFailed } = boardSlice.actio
 
 export const selectDays = state => state.board.days;
 export const selectMeals = state => state.board.meals;
+export const selectBoard = state => state.board.board;
+export const selectWeek = state => state.board.week;
+export const selectSelectedWeek = state => state.board.selectedWeek;
 
 export default boardSlice.reducer;

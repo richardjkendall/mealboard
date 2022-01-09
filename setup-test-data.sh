@@ -38,6 +38,7 @@ curl -X PATCH http://localhost:5000/family/1/board/2 -d @test-data/update_board.
   --header "x-remote-user: rjk"
 
 curl -X PUT http://localhost:5000/family/1/board/1/week -d @test-data/create_week_1.json --header "Content-Type: application/json"
+curl -X PUT http://localhost:5000/family/1/board/1/week -d @test-data/create_week_2.json --header "Content-Type: application/json"
 
 # this should fail
 curl -X PUT http://localhost:5000/family/1/board/2/week -d @test-data/create_week_1.json \
