@@ -35,6 +35,12 @@ const familySlice = createSlice({
   reducers: {
     setFamily: (state, action) => {
       state.selectedFamily = action.payload;
+      if(action.payload.boards.length > 0) {
+        state.selectedBoard = action.payload.boards[0];
+      } else {
+        console.log("this family has no boards");
+        state.selectedBoard = {};
+      }
     },
     setBoard: (state, action) => {
       state.selectedBoard = action.payload;

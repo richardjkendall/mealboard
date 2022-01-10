@@ -21,8 +21,8 @@ from error_handler import AccessDeniedException, error_handler, BadRequestExcept
 logger = logging.getLogger(__name__)
 
 family = Blueprint('family', __name__)
-family_schema = FamilySchema(exclude=["boards.weeks"])
-families_schema = FamilySchema(many=True, exclude=["boards.weeks"])
+family_schema = FamilySchema(exclude=["boards.weeks", "meals.ingredients"])
+families_schema = FamilySchema(many=True, exclude=["boards.weeks", "meals.ingredients"])
 user_to_family_schema = UserToFamilySchema()
 users_schema = UserSchema(many=True)
 board_schema = BoardSchema(exclude=["weeks.meals"])

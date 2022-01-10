@@ -19,6 +19,28 @@ export const fetchBoard = createAsyncThunk(
   }
 )
 
+export const fetchWeek = createAsyncThunk(
+  'board/fetchWeek',
+  async (item, thunkAPI) => {
+    const response = await axios.get(API_BASE() + `family/${item.family_id}/board/${item.board_id}/week/${item.week_id}`);
+    console.log("got following response", response.data);
+    return response.data;
+  }
+)
+
+export const addMealToWeek = createAsyncThunk(
+  'board/addMealToWeek',
+  async (item, thunkAPI) => {
+    const response = await axios.put(API_BASE() + `family/${item.family_id}/board/${item.board_id}/week/${item.week_id}/meal`, {
+      meal_id: item.meal_id,
+      meal_slot: item.meal_slot,
+      day: item.day
+    });
+    console.log("got following response", response.data);
+    return response.data;
+  }
+)
+
 export const boardSlice = createSlice({
   name: 'board',
   initialState: {
@@ -43,17 +65,37 @@ export const boardSlice = createSlice({
     ],
   },
   reducers: {
-    switchToAll: state => {
-      state.value = "all";
-    },
-    switchToRunning: state => {
-      state.value = "running";
-    },
-    switchToFailed: state => {
-      state.value = "failed";
+    clearBoard: state => {
+      state.board = {};
+      state.week = {};
+      state.selectedWeek = {};
     },
   },
   extraReducers: {
+    [addMealToWeek.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      state.week.meals.push(action.payload);
+    },
+    [addMealToWeek.pending]: state => {
+      state.loading = "yes";
+    },
+    [addMealToWeek.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.error.message;
+    },
+    [fetchWeek.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      state.week = action.payload;
+    },
+    [fetchWeek.pending]: state => {
+      state.loading = "yes";
+    },
+    [fetchWeek.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.error.message;
+    },
     [fetchBoard.fulfilled]: (state, action) => {
       state.loading = "idle";
       state.error = "";
@@ -93,7 +135,7 @@ export const boardSlice = createSlice({
   }
 });
 
-export const { switchToAll, switchToRunning, switchToFailed } = boardSlice.actions;
+export const { clearBoard } = boardSlice.actions;
 
 export const selectDays = state => state.board.days;
 export const selectMeals = state => state.board.meals;

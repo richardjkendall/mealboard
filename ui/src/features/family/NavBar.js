@@ -14,6 +14,7 @@ import {
 
 import {
   fetchBoard,
+  clearBoard,
   selectSelectedWeek
 } from '../board/boardSlice';
 
@@ -21,7 +22,7 @@ const NavContainer = styled.div`
   background-color: #efefef;
   margin-bottom: 5px;
   padding-left: 5px;
-  width: 100vw;
+  width: calc(100vw - 5px);
   height: 50px;
   display: flex;
 `
@@ -61,10 +62,14 @@ export default function NavBar(props) {
   }, [loadPage, dispatch]);
 
   useEffect(() => {
-    dispatch(fetchBoard({
-      family_id: selectedFam.id,
-      board_id: selected_Board.id
-    }));
+    if(typeof(selectedFam.id) !== "undefined" && typeof(selected_Board.id) !== "undefined") {
+      dispatch(fetchBoard({
+        family_id: selectedFam.id,
+        board_id: selected_Board.id
+      }));
+    } else {
+      dispatch(clearBoard());
+    }
   }, [selected_Board.id, selectedFam.id, dispatch]);
 
   const familyOptions = families.map(family => <option key={"family_" + family.id} value={family.id}>{family.family_name}</option>);
@@ -80,6 +85,7 @@ export default function NavBar(props) {
 
   const switchFamily = (id) => {
     var family = families.filter(family => family.id === parseInt(id))[0];
+    dispatch(clearBoard());
     dispatch(setFamily(family));
   }
 
@@ -111,6 +117,8 @@ export default function NavBar(props) {
         }
         <NavDivider/>
         {currentWeek}
+        <NavDivider/>
+        <button>Go to Current Week</button>
       </NavContainer>
     </div>
   )
