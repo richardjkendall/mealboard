@@ -3,8 +3,11 @@ import styled from 'styled-components';
 import moment from "moment";
 import { useSelector, useDispatch } from 'react-redux';
 
+import AddEditMeal from '../ui/AddEditMeal';
+
 import {
-  selectedFamily
+  selectedFamily,
+  deleteMeal
 } from '../family/familySlice';
 
 import { 
@@ -14,7 +17,8 @@ import {
   selectWeek,
   selectBoard,
   fetchWeek,
-  addMealToWeek
+  addMealToWeek,
+  deleteMealFromWeek
 } from './boardSlice';
 
 const Row = styled.div`
@@ -89,6 +93,7 @@ const MealsTrayHeader = styled.div`
 
 const HeaderCellSmall = styled.div`
   flex: 0 1 auto;
+  display: flex;
 
   p {
     margin-top: 5px;
@@ -122,12 +127,16 @@ const Pill = styled.div`
   color: white;
   height: 20px;
   margin: 5px;
+
+  &[data-selected="yes"] {
+    background-color: red;
+  }
 `
 
-const MealPill = ({mealName, onDS}) => {
+const MealPill = ({mealName, onDS, onClick, selectedMeal}) => {
   
   return(
-    <Pill draggable={true} onDragStart={onDS}>
+    <Pill draggable={true} onDragStart={onDS} onClick={onClick} data-selected={selectedMeal}>
       {mealName}
     </Pill>
   )
@@ -147,11 +156,12 @@ export default function Board(props) {
   const [dragDay, setDragDay] = useState("");
   const [dragMealSlot, setDragMealSlot] = useState("");
   const [displayBoard, setDisplayBoard] = useState(false);
+  const [showAddEditMeal, setShowAddEditMeal] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState(0);
   
   useEffect(() => {
     if(typeof(selectedFam.id) !== "undefined" && typeof(selectedBoard.id) !== "undefined" && typeof(selectedWeek.id) !== "undefined") {
       console.log("fetching week");
-      console.log(selectedFam, selectedBoard, selectedWeek);
       dispatch(fetchWeek({
         family_id: selectedFam.id,
         board_id: selectedBoard.id,
@@ -162,6 +172,25 @@ export default function Board(props) {
       setDisplayBoard(false);
     }
   }, [selectedBoard.id, selectedFam.id, selectedWeek.id, dispatch]);
+
+  const startAddMeal = () => {
+    setShowAddEditMeal(true);
+  }
+
+  const delMeal = () => {
+    console.log("delete meal", selectedMeal);
+    dispatch(deleteMeal({
+      family_id: selectedFam.id,
+      meal_id: selectedMeal
+    }));
+    // need to remove the meals from the board on the screen
+    dispatch(deleteMealFromWeek(selectedMeal));
+    setSelectedMeal(0);
+  }
+
+  const closeAddMeal = () => {
+    setShowAddEditMeal(false);
+  }
 
   const onDragEnterMealSlot = (meal, day, e) => {
     console.log("drag entered meal-slot", meal, day);
@@ -202,6 +231,15 @@ export default function Board(props) {
     setDragMealSlot("");
   }
 
+  const selectMealPill = (meal) => {
+    console.log("selecting meal id", meal);
+    if(selectedMeal === meal) {
+      setSelectedMeal(0);
+    } else {
+      setSelectedMeal(meal);
+    }
+  }
+
   const DayHeaders = days.map(day => <WeekHeader key={"week_" + day}><p>{day}</p></WeekHeader>);
   const MealRows = mealSlots.map(meal => {
     const mealDays = days.map(day => {
@@ -232,14 +270,17 @@ export default function Board(props) {
     )
 
   });
-  const Meals = Object.keys(selectedFam).length !== 0 && selectedFam.meals.map(meal => <MealPill 
+  const Meals = Object.keys(selectedFam).length !== 0 && selectedFam.meals.filter(meal => meal.meal_name.toLowerCase().includes(mealSearch.toLowerCase())).map(meal => <MealPill 
     key={"meal_" + meal.id}
     mealName={meal.meal_name}
+    onClick={selectMealPill.bind(null, meal.id)} 
+    selectedMeal={meal.id === selectedMeal ? "yes" : "no"}
     onDS={onDragMealStart.bind(null, meal.id)}
   />)
 
   return (
     displayBoard && <div>
+      <AddEditMeal show={showAddEditMeal} close={closeAddMeal} />
       <Row>
         <WeekHeader></WeekHeader>
         {DayHeaders}
@@ -247,7 +288,11 @@ export default function Board(props) {
       {MealRows}
       <MealsTray>
         <MealsTrayHeader>
-          <HeaderCellSmall><p>Meals</p></HeaderCellSmall>
+          <HeaderCellSmall>
+            <p>Meals</p>
+            <button onClick={startAddMeal}>Add Meal</button>
+            {selectedMeal !== 0 && <button onClick={delMeal}>Remove Meal</button>}
+          </HeaderCellSmall>
           <HeaderCellGrow>
             <SearchLabel>Search:</SearchLabel>
             <input 

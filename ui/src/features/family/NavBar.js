@@ -15,7 +15,10 @@ import {
 import {
   fetchBoard,
   clearBoard,
-  selectSelectedWeek
+  selectSelectedWeek,
+  selectBoard,
+  addWeek,
+  switchWeek
 } from '../board/boardSlice';
 
 const NavContainer = styled.div`
@@ -53,6 +56,7 @@ export default function NavBar(props) {
   const families = useSelector(selectFamilies);
   const selectedFam = useSelector(selectedFamily);
   const selected_Board = useSelector(selectedBoard);
+  const board = useSelector(selectBoard);
   const selectedWeek = useSelector(selectSelectedWeek);
 
   const [loadPage] = useState(0);
@@ -72,16 +76,66 @@ export default function NavBar(props) {
     }
   }, [selected_Board.id, selectedFam.id, dispatch]);
 
+  const gotoPrevWeek = () => {
+    // find out if the prev week exists
+    var startOfNextWeek = moment(selectedWeek.week_start_date).subtract(7, 'days').format("YYYY-MM-DD");
+    console.log("start of prev week is", startOfNextWeek);
+    var prevWeek = board.weeks.filter(week => week.week_start_date.startsWith(startOfNextWeek));
+    if(prevWeek.length === 0) {
+      console.log("no prev week found");
+    } else {
+      console.log("prev week exists");
+      dispatch(switchWeek(prevWeek[0]));
+    }
+  }
+
+  const gotoNextWeek = () => {
+    // find if next week exists already
+    var startOfNextWeek = moment(selectedWeek.week_start_date).add(7, 'days').format("YYYY-MM-DD");
+    console.log("start of next week is", startOfNextWeek);
+    var nextWeek = board.weeks.filter(week => week.week_start_date.startsWith(startOfNextWeek));
+    if(nextWeek.length === 0) {
+      console.log("no next week found, need to create one");
+      dispatch(addWeek({
+        family_id: selectedFam.id,
+        board_id: board.id,
+        week_start_date: startOfNextWeek + "T00:00:00"
+      }));
+    } else {
+      console.log("next week already exists");
+      dispatch(switchWeek(nextWeek[0]));
+    }
+  }
+
+  const gotoThisWeek = () => {
+    // determine the date of the Monday of the current week
+    var now = new Date();
+    var currentDay = now.getDay() === 0 ? 6 : now.getDay() -1;
+    console.log("days from Monday", currentDay);
+    var mondayDate = moment().subtract(currentDay, 'days').format("YYYY-MM-DD");
+    console.log("date on Monday this week", mondayDate);
+    // need to check if this week exists
+    var week = board.weeks.filter(week => week.week_start_date.startsWith(mondayDate));
+    if(week.length === 0) {
+      console.log("no current week found");
+      dispatch(addWeek({
+        family_id: selectedFam.id,
+        board_id: board.id,
+        week_start_date: mondayDate + "T00:00:00"
+      }));
+    } else {
+      console.log("found the current week");
+      dispatch(switchWeek(week[0]));
+    }
+  }
+
   const familyOptions = families.map(family => <option key={"family_" + family.id} value={family.id}>{family.family_name}</option>);
   const boardOptions = families.length > 0 && selectedFam.boards.map(board => <option key={"board_" + board.id} value={board.id}>{board.board_name}</option>);
   const currentWeek = Object.keys(selectedWeek).length !== 0 && <WeekSelector>
-    <button>-</button>
+    <button onClick={gotoPrevWeek}>-</button>
     <p>Week {moment(selectedWeek.week_start_date).format("w YYYY")}</p>
-    <button>+</button>
+    <button onClick={gotoNextWeek}>+</button>
   </WeekSelector>
-
-
-  console.log("selected family", selectedFam);
 
   const switchFamily = (id) => {
     var family = families.filter(family => family.id === parseInt(id))[0];
@@ -115,10 +169,11 @@ export default function NavBar(props) {
           {boardOptions}
         </NavSelect>
         }
+        <button>Add Board</button>
         <NavDivider/>
         {currentWeek}
         <NavDivider/>
-        <button>Go to Current Week</button>
+        <button onClick={gotoThisWeek}>Go to Current Week</button>
       </NavContainer>
     </div>
   )

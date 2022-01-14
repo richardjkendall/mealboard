@@ -23,6 +23,26 @@ export const fetchAll = createAsyncThunk(
   }
 )
 
+export const addMeal = createAsyncThunk(
+  'family/addMeal',
+  async (item, thunkAPI) => {
+    const response = await axios.put(API_BASE() + `family/${item.family_id}/meal`, {
+      meal_name: item.meal_name,
+    });
+    console.log("got following response", response.data);
+    return response.data;
+  }
+)
+
+export const deleteMeal = createAsyncThunk(
+  'family/deleteMeal',
+  async (item, thunkAPI) => {
+    const response = await axios.delete(API_BASE() + `family/${item.family_id}/meal/${item.meal_id}`);
+    console.log("got following response", response.data);
+    return response.data;
+  }
+)
+
 const familySlice = createSlice({
   name: 'family',
   initialState: { 
@@ -47,6 +67,30 @@ const familySlice = createSlice({
     },
   },
   extraReducers: {
+    [deleteMeal.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      state.selectedFamily.meals = state.selectedFamily.meals.filter(meal => meal.id !== action.payload.id);
+    },
+    [deleteMeal.pending]: state => {
+      state.loading = "yes";
+    },
+    [deleteMeal.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.error.message;
+    },
+    [addMeal.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      state.selectedFamily.meals.push(action.payload);
+    },
+    [addMeal.pending]: state => {
+      state.loading = "yes";
+    },
+    [addMeal.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.error.message;
+    },
     [fetchAll.fulfilled]: (state, action) => {
       state.loading = "idle";
       state.error = "";

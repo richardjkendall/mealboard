@@ -28,6 +28,17 @@ export const fetchWeek = createAsyncThunk(
   }
 )
 
+export const addWeek = createAsyncThunk(
+  'board/addWeek',
+  async (item, thunkAPI) => {
+    const response = await axios.put(API_BASE() + `family/${item.family_id}/board/${item.board_id}/week`, {
+      week_start_date: item.week_start_date,
+    });
+    console.log("got following response", response.data);
+    return response.data;
+  }
+)
+
 export const addMealToWeek = createAsyncThunk(
   'board/addMealToWeek',
   async (item, thunkAPI) => {
@@ -70,8 +81,30 @@ export const boardSlice = createSlice({
       state.week = {};
       state.selectedWeek = {};
     },
+    deleteMealFromWeek: (state, action) => {
+      if(state.week.meals.length > 0) {
+        state.week.meals = state.week.meals.filter(meal => meal.meal.id !== action.payload);
+      }
+    },
+    switchWeek: (state, action) => {
+      state.selectedWeek = action.payload;
+    },
   },
   extraReducers: {
+    [addWeek.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      // need to add the week to the board weeks and select the week
+      state.board.weeks.push(action.payload);
+      state.selectedWeek = action.payload;
+    },
+    [addWeek.pending]: state => {
+      state.loading = "yes";
+    },
+    [addWeek.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.error.message;
+    },
     [addMealToWeek.fulfilled]: (state, action) => {
       state.loading = "idle";
       state.error = "";
@@ -104,6 +137,7 @@ export const boardSlice = createSlice({
       state.board.weeks.sort((a, b) => {
         var da = moment(a.week_start_date);
         var db = moment(b.week_start_date);
+        // need to make dn the Monday date
         var dn = moment();
         var diffa = Math.abs(da.diff(dn, 'days'));
         var diffb = Math.abs(db.diff(dn, 'days'));
@@ -135,7 +169,7 @@ export const boardSlice = createSlice({
   }
 });
 
-export const { clearBoard } = boardSlice.actions;
+export const { clearBoard, deleteMealFromWeek, switchWeek } = boardSlice.actions;
 
 export const selectDays = state => state.board.days;
 export const selectMeals = state => state.board.meals;
