@@ -12,7 +12,7 @@ class MealModel(db.Model):
     family = db.relationship('FamilyModel', backref=db.backref('meals', lazy=True))
     portions = db.Column(db.Integer, nullable=True)
     
-    weeks = db.relationship('WeekModel', secondary='week2meal')
+    #weeks = db.relationship('WeekModel', secondary='week2meal', passive_deletes=True, cascade="delete")
 
 
 class MealSchema(ma.Schema):

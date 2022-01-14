@@ -14,7 +14,7 @@ from models.ingredient_model import IngredientModel
 from models.week_to_meal import WeekToMealModel, WeekToMealSchema
 from models.shared import db
 
-from utils import must_be_json
+from utils import must_be_json, success_json_response
 from security import secured, valid_user, user_can_edit_family, user_can_read_family, user_can_see_board
 from error_handler import AccessDeniedException, error_handler, BadRequestException, ObjectNotFoundException
 
@@ -76,6 +76,22 @@ def get_meal(username, groups, user_id, family_id, meal_id):
     raise ObjectNotFoundException("Meal not found")
   return meal_schema.jsonify(meal)
 
+@family.route("/<int:family_id>/meal/<int:meal_id>", methods=["DELETE"])
+@error_handler
+@secured
+@valid_user
+@user_can_edit_family
+def delete_meal(username, groups, user_id, family_id, meal_id):
+  meal = MealModel.query.filter(MealModel.family_id == family_id, MealModel.id == meal_id).first()
+  if not meal:
+    raise ObjectNotFoundException("Meal not found")
+  db.session.delete(meal)
+  db.session.commit()
+  return success_json_response({
+    "id": meal_id,
+    "status": "deleted"
+  })
+
 @family.route("/<int:family_id>/meal", methods=["PUT"])
 @error_handler
 @secured
@@ -104,7 +120,6 @@ def create_meal(username, groups, user_id, family_id):
   db.session.commit()
   meal = MealModel.query.get(new_meal.id)
   return meal_schema.jsonify(meal)
-
 
 @family.route("/<int:family_id>/other_users", methods=["GET"])
 @error_handler
