@@ -3,6 +3,11 @@ import styled from 'styled-components';
 import moment from "moment";
 import { useSelector, useDispatch } from 'react-redux';
 
+import AddBoard from '../ui/AddBoard';
+import AddFamily from '../ui/AddFamily';
+import { GetThisMonday } from '../../utils/dates';
+import cog from './cog.png';
+
 import { 
   fetchAll,
   selectFamilies,
@@ -51,6 +56,44 @@ const WeekSelector = styled.div`
   }
 `
 
+const NavRightAlign = styled.div`
+  flex: 2 1 auto;
+  text-align: right;
+`
+
+const CogImg = styled.img`
+  width: 30px;
+  height: 30px;
+  margin: 10px;
+  cursor: pointer;
+`
+
+const DropDownMenu = styled.div`
+  border-top: solid 5px grey;
+  position: absolute;
+  top: 50px;
+  right: 0px;
+  width: 200px;
+  display: ${props => props.show ? "block" : "none"};
+  background-color: #efefef;
+
+  ul {
+    list-style-type: none;
+    margin: 10px;
+    padding: 0px;
+  }
+
+  li {
+    padding: 5px;
+    cursor: pointer;
+  }
+
+  li:hover {
+    background-color: white;
+    border-left: solid 1px black;
+  }
+`
+
 export default function NavBar(props) {
   const dispatch = useDispatch();
   const families = useSelector(selectFamilies);
@@ -59,6 +102,10 @@ export default function NavBar(props) {
   const board = useSelector(selectBoard);
   const selectedWeek = useSelector(selectSelectedWeek);
 
+  const [showAddBoard, setShowAddBoard] = useState(false);
+  const [showAddFamily, setShowAddFamily] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [boardAddEditMode, setBoardAddEditMode] = useState("add");
   const [loadPage] = useState(0);
 
   useEffect(() => {
@@ -75,6 +122,29 @@ export default function NavBar(props) {
       dispatch(clearBoard());
     }
   }, [selected_Board.id, selectedFam.id, dispatch]);
+
+  const editBoard = () => {
+    setShowMenu(false);
+    setBoardAddEditMode("edit");
+    setShowAddBoard(true);
+  }
+
+  const startAddBoard = () => {
+    setBoardAddEditMode("add");
+    setShowAddBoard(true);
+  }
+
+  const closeAddBoard = () => {
+    setShowAddBoard(false);
+  }
+
+  const startAddFamily = () => {
+    setShowAddFamily(true);
+  }
+
+  const closeAddFamily = () => {
+    setShowAddFamily(false);
+  }
 
   const gotoPrevWeek = () => {
     // find out if the prev week exists
@@ -109,10 +179,7 @@ export default function NavBar(props) {
 
   const gotoThisWeek = () => {
     // determine the date of the Monday of the current week
-    var now = new Date();
-    var currentDay = now.getDay() === 0 ? 6 : now.getDay() -1;
-    console.log("days from Monday", currentDay);
-    var mondayDate = moment().subtract(currentDay, 'days').format("YYYY-MM-DD");
+    var mondayDate = GetThisMonday()
     console.log("date on Monday this week", mondayDate);
     // need to check if this week exists
     var week = board.weeks.filter(week => week.week_start_date.startsWith(mondayDate));
@@ -155,6 +222,15 @@ export default function NavBar(props) {
 
   return (
     <div>
+      <AddFamily
+        show={showAddFamily}
+        close={closeAddFamily}
+      />
+      <AddBoard
+        show={showAddBoard} 
+        close={closeAddBoard} 
+        mode={boardAddEditMode}
+      />
       <NavContainer>
         <p><b>Meal</b>Board</p>
         <NavDivider/>
@@ -162,6 +238,7 @@ export default function NavBar(props) {
         <NavSelect value={selectedFam.id} onChange={event => switchFamily(event.target.value)}>
           {familyOptions}
         </NavSelect>
+        <button onClick={startAddFamily}>Create Family Group</button>
         <NavDivider/>
         <p>Board:</p>
         {selectedFam !== -1 &&
@@ -169,11 +246,21 @@ export default function NavBar(props) {
           {boardOptions}
         </NavSelect>
         }
-        <button>Add Board</button>
+        <button onClick={startAddBoard}>Add Board</button>
         <NavDivider/>
         {currentWeek}
         <NavDivider/>
         <button onClick={gotoThisWeek}>Go to Current Week</button>
+        <NavRightAlign>
+          <CogImg src={cog} onClick={() => {setShowMenu(!showMenu)}}/>
+        </NavRightAlign>
+        <DropDownMenu show={showMenu}>
+          <ul>
+            <li onClick={editBoard}>Board Settings</li>
+            <li>Family Settings</li>
+            <li>User Settings</li>
+          </ul>
+        </DropDownMenu>
       </NavContainer>
     </div>
   )

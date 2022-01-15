@@ -4,9 +4,11 @@ import moment from "moment";
 import { useSelector, useDispatch } from 'react-redux';
 
 import AddEditMeal from '../ui/AddEditMeal';
+import { GetThisMonday } from '../../utils/dates';
 
 import {
   selectedFamily,
+  addBoard,
   deleteMeal
 } from '../family/familySlice';
 
@@ -18,7 +20,8 @@ import {
   selectBoard,
   fetchWeek,
   addMealToWeek,
-  deleteMealFromWeek
+  deleteMealFromWeek,
+  addWeek
 } from './boardSlice';
 
 const Row = styled.div`
@@ -169,9 +172,36 @@ export default function Board(props) {
       }));
       setDisplayBoard(true);
     } else {
-      setDisplayBoard(false);
+      if(typeof(selectedFam.id) !== "undefined" && typeof(selectedBoard.id) !== "undefined") {
+        // I think this is a new board without any weeks
+        // so lets add a Week
+        console.log("board without weeks, so creating one for this week");
+        var mondayDate = GetThisMonday();
+        dispatch(addWeek({
+          family_id: selectedFam.id,
+          board_id: selectedBoard.id,
+          week_start_date: mondayDate + "T00:00:00"
+        }));
+      } else {
+        if(typeof(selectedFam.id) !== "undefined") {
+          if(selectedFam.boards.length === 0) {
+            // this is a family group without any boards
+            // so let's add one
+            console.log("family has no boards");
+            // let's create a board
+            dispatch(addBoard({
+              family_id: selectedFam.id,
+              board_name: selectedFam.family_name + " Board",
+              private: false,
+            }));
+            setDisplayBoard(true);
+          }
+        } else {
+          setDisplayBoard(false);
+        }
+      }
     }
-  }, [selectedBoard.id, selectedFam.id, selectedWeek.id, dispatch]);
+  }, [selectedBoard.id, selectedFam.id, selectedWeek.id, selectedFam.family_name, selectedFam.boards, dispatch]);
 
   const startAddMeal = () => {
     setShowAddEditMeal(true);

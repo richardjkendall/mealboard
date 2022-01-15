@@ -1,37 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 import { 
-  selectedFamily,
-  addMeal 
+  addFamily 
 } from '../family/familySlice';
 
 import ModalBox from './ModalBox';
 import { Form, Block } from './FormWidgets';
 
-export default function AddEditMeal(props) {
+export default function AddBoard(props) {
   const dispatch = useDispatch();
-  const selectedFam = useSelector(selectedFamily);
 
-  const [mealName, setMealName] = useState("");
+  const [familyName, setFamilyName] = useState("");
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
     // clear the form
     console.log("clear the form");
-    setMealName("");
+    setFamilyName("");
     setFormError("");
-  }, [props.show, setMealName, setFormError]);
+  }, [props.show, setFamilyName, setFormError]);
 
   const Submit = () => {
-    console.log("Add button clicked", mealName);
-    if(mealName === "") {
+    console.log("Add button clicked", familyName);
+    if(familyName === "") {
       // need to throw an error
-      setFormError("Please specify a meal name");
+      setFormError("Please specify a family group name");
     } else {
-      dispatch(addMeal({
-        meal_name: mealName,
-        family_id: selectedFam.id,
+      dispatch(addFamily({
+        family_name: familyName
       }));
       props.close("added");
     }
@@ -45,10 +42,10 @@ export default function AddEditMeal(props) {
     <div>
       <ModalBox show={props.show} close={props.close}>
         <Form>
-          <p>Add a Meal</p>
+          <p>Add a Family Group</p>
           <Block>
-            <label>Meal Name:</label>
-            <input type="text" value={mealName} onChange={(e) => {setMealName(e.target.value)}} />
+            <label>Family Name:</label>
+            <input type="text" value={familyName} onChange={(e) => {setFamilyName(e.target.value)}} />
           </Block>
           {formError && <p ptype="error">{formError}</p>}
           <button type="button" onClick={Submit}>Add</button>

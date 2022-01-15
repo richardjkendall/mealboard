@@ -23,6 +23,43 @@ export const fetchAll = createAsyncThunk(
   }
 )
 
+export const addFamily = createAsyncThunk(
+  'family/addFamily',
+  async (item, thunkAPI) => {
+    console.log("add family", item);
+    console.log("URL", API_BASE() + 'family/');
+    const response = await axios.put(API_BASE() + 'family/', {
+      family_name: item.family_name,
+    });
+    console.log("got following response", response.data);
+    return response.data;
+  }
+)
+
+export const addBoard = createAsyncThunk(
+  'family/addBoard',
+  async (item, thunkAPI) => {
+    const response = await axios.put(API_BASE() + `family/${item.family_id}/board`, {
+      board_name: item.board_name,
+      scope: item.private ? "private" : "family"
+    });
+    console.log("got following response", response.data);
+    return response.data;
+  }
+)
+
+export const editBoard = createAsyncThunk(
+  'family/editBoard',
+  async (item, thunkAPI) => {
+    const response = await axios.patch(API_BASE() + `family/${item.family_id}/board/${item.board_id}`, {
+      board_name: item.board_name,
+      scope: item.private ? "private" : "family"
+    });
+    console.log("got following response", response.data);
+    return response.data;
+  }
+)
+
 export const addMeal = createAsyncThunk(
   'family/addMeal',
   async (item, thunkAPI) => {
@@ -67,6 +104,71 @@ const familySlice = createSlice({
     },
   },
   extraReducers: {
+    [editBoard.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      // need to save the edits
+      state.selectedBoard = action.payload;
+      // got through the families, find the board and then edit it
+      state.selectedFamily.boards = state.selectedFamily.boards.map(board => {
+        if(board.id === action.payload.id) {
+          return action.payload;
+        } else {
+          return board;
+        }
+      });
+      state.families = state.families.map(family => {
+        if(family.id === action.payload.family_id) {
+          family.boards = state.selectedFamily.boards;
+          return family;
+        } else {
+          return family;
+        }
+      });
+    },
+    [editBoard.pending]: state => {
+      state.loading = "yes";
+    },
+    [editBoard.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.error.message;
+    },
+    [addFamily.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      state.families.push(action.payload);
+      state.selectedFamily = action.payload;
+      state.selectedBoard = {};
+    },
+    [addFamily.pending]: state => {
+      state.loading = "yes";
+    },
+    [addFamily.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.error.message;
+    },
+    [addBoard.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      state.selectedFamily.boards.push(action.payload);
+      state.selectedBoard = action.payload;
+      // need to add the board into the families 
+      state.families = state.families.map(family => {
+        if(family.id === action.payload.family_id) {
+          family.boards.push(action.payload);
+          return family;
+        } else {
+          return family;
+        }
+      });
+    },
+    [addBoard.pending]: state => {
+      state.loading = "yes";
+    },
+    [addBoard.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.error.message;
+    },
     [deleteMeal.fulfilled]: (state, action) => {
       state.loading = "idle";
       state.error = "";

@@ -13,6 +13,7 @@ var API_BASE = function() {
 export const fetchBoard = createAsyncThunk(
   'board/fetchBoard',
   async (item, thunkAPI) => {
+    console.log("fetching board");
     const response = await axios.get(API_BASE() + `family/${item.family_id}/board/${item.board_id}`);
     console.log("got following response", response.data);
     return response.data;
@@ -137,8 +138,10 @@ export const boardSlice = createSlice({
       state.board.weeks.sort((a, b) => {
         var da = moment(a.week_start_date);
         var db = moment(b.week_start_date);
-        // need to make dn the Monday date
-        var dn = moment();
+        // need to make dn the Monday date  // done
+        var now = new Date();
+        var currentDay = now.getDay() === 0 ? 6 : now.getDay() -1;
+        var dn = moment().subtract(currentDay, 'days');
         var diffa = Math.abs(da.diff(dn, 'days'));
         var diffb = Math.abs(db.diff(dn, 'days'));
         console.log("diffa", diffa, "diffb", diffb);
