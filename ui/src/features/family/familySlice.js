@@ -36,6 +36,38 @@ export const addFamily = createAsyncThunk(
   }
 )
 
+export const addOtherUser = createAsyncThunk(
+  'family/addOtherUser',
+  async (item, thunkAPI) => {
+    const response = await axios.put(API_BASE() + `family/${item.family_id}/other_users`, {
+      role: "view",
+      user_id: item.user_id
+    });
+    console.log("got following response", response.data);
+    return response.data;
+  }
+)
+
+export const editOtherUser = createAsyncThunk(
+  'family/editOtherUser',
+  async (item, thunkAPI) => {
+    const response = await axios.patch(API_BASE() + `family/${item.family_id}/other_users/${item.other_user_id}`, {
+      role: item.role,
+    });
+    console.log("got following response", response.data);
+    return response.data;
+  }
+)
+
+export const deleteOtherUser = createAsyncThunk(
+  'family/deleteOtherUser',
+  async (item, thunkAPI) => {
+    const response = await axios.delete(API_BASE() + `family/${item.family_id}/other_users/${item.other_user_id}`);
+    console.log("got following response", response.data);
+    return response.data;
+  }
+)
+
 export const addBoard = createAsyncThunk(
   'family/addBoard',
   async (item, thunkAPI) => {
@@ -104,6 +136,78 @@ const familySlice = createSlice({
     },
   },
   extraReducers: {
+    [addOtherUser.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      // need to update selectedFamily
+      state.selectedFamily.other_users.push(action.payload);
+      // and need to update the families list as well
+      state.families = state.families.map(family => {
+        if(family.id === action.payload.family_id) {
+          family.other_users = state.selectedFamily.other_users;
+          return family;
+        } else {
+          return family;
+        }
+      });
+    },
+    [addOtherUser.pending]: state => {
+      state.loading = "yes";
+    },
+    [addOtherUser.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.error.message;
+    },
+    [deleteOtherUser.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      // need to update selectedFamily to remove the 
+      state.selectedFamily.other_users = state.selectedFamily.other_users.filter(other_user => other_user.id !== action.payload.other_user_id)
+      // and need to update the families list as well
+      state.families = state.families.map(family => {
+        if(family.id === action.payload.family_id) {
+          family.other_users = state.selectedFamily.other_users;
+          return family;
+        } else {
+          return family;
+        }
+      });
+    },
+    [deleteOtherUser.pending]: state => {
+      state.loading = "yes";
+    },
+    [deleteOtherUser.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.error.message;
+    },
+    [editOtherUser.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      // need to update selectedFamily
+      state.selectedFamily.other_users = state.selectedFamily.other_users.map(other_user => {
+        if(other_user.id === action.payload.id) {
+          return action.payload;
+        } else {
+          return other_user;
+        }
+      })
+      // and need to update the families list as well
+      state.families = state.families.map(family => {
+        if(family.id === action.payload.family_id) {
+          family.other_users = state.selectedFamily.other_users;
+          return family;
+        } else {
+          return family;
+        }
+      });
+    },
+    [editOtherUser.pending]: state => {
+      state.loading = "yes";
+    },
+    [editOtherUser.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.error.message;
+    },
     [editBoard.fulfilled]: (state, action) => {
       state.loading = "idle";
       state.error = "";

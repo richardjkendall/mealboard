@@ -130,27 +130,25 @@ def get_other_users(username, groups, user_id, family_id):
   family = FamilyModel.query.get_or_404(family_id)
   return jsonify(users_schema.dump(family.other_users))
 
-@family.route("/<int:family_id>/other_users/<int:other_user_id>", methods=["DELETE"])
-@error_handler
-@secured
-@valid_user
-@user_can_edit_family
-def delete_other_user(username, groups, user_id, family_id, other_user_id):
-  pass
-
-@family.route("/<int:family_id>/other_users/<int:other_user_id>", methods=["PUT", "PATCH"])
+@family.route("/<int:family_id>/other_users", methods=["PUT"])
 @error_handler
 @secured
 @valid_user
 @user_can_edit_family
 @must_be_json
-def add_other_user(username, groups, user_id, family_id, other_user_id):
+def add_other_user(username, groups, user_id, family_id):
   # get the family, must be the owner to make these changes
   family = FamilyModel.query.get_or_404(family_id)
   if not family.primary_user_id == user_id:
     raise ObjectNotFoundException("Could not find this family")
+  # need user_id
+  supplied_user_id = request.json.get("user_id")
+  if not supplied_user_id:
+    raise BadRequestException("No user_id specified in request")
+  if user_id == supplied_user_id:
+    raise BadRequestException("Cannot create a family association for the primary user")
   # check if association already exists
-  user2family = UserToFamilyModel.query.filter(UserToFamilyModel.family_id == family_id, UserToFamilyModel.user_id == other_user_id).first()
+  user2family = UserToFamilyModel.query.filter(UserToFamilyModel.family_id == family_id, UserToFamilyModel.user_id == supplied_user_id).first()
   # need to check if role is valid
   role = request.json.get("role")
   if not role:
@@ -158,13 +156,59 @@ def add_other_user(username, groups, user_id, family_id, other_user_id):
   if not user2family:
     new_user2family = UserToFamilyModel(
       family_id = family_id,
-      user_id = other_user_id,
+      user_id = supplied_user_id,
       role = UserRoleEnum(role).name
     )
     db.session.add(new_user2family)
     db.session.commit()
     user2family = UserToFamilyModel.query.get(new_user2family.id)
     return user_to_family_schema.jsonify(user2family)
+  else:
+    # cannot create an association which one already exists
+    raise BadRequestException("Cannot create a duplicate family/user association")
+
+@family.route("/<int:family_id>/other_users/<int:other_user_id>", methods=["DELETE"])
+@error_handler
+@secured
+@valid_user
+@user_can_edit_family
+def delete_other_user(username, groups, user_id, family_id, other_user_id):
+  # get the family, must be the owner to make these changes
+  family = FamilyModel.query.get_or_404(family_id)
+  if not family.primary_user_id == user_id:
+    raise ObjectNotFoundException("Could not find this family")
+  # check if association already exists
+  user2family = UserToFamilyModel.query.filter(UserToFamilyModel.family_id == family_id, UserToFamilyModel.id == other_user_id).first()
+  if not user2family:
+    # can't edit an association which does not exist
+    raise ObjectNotFoundException("User/family association not found.")
+  db.session.delete(user2family)
+  db.session.commit()
+  return success_json_response({
+    "status": "okay",
+    "other_user_id": other_user_id
+  })
+
+@family.route("/<int:family_id>/other_users/<int:other_user_id>", methods=["PATCH"])
+@error_handler
+@secured
+@valid_user
+@user_can_edit_family
+@must_be_json
+def edit_other_user(username, groups, user_id, family_id, other_user_id):
+  # get the family, must be the owner to make these changes
+  family = FamilyModel.query.get_or_404(family_id)
+  if not family.primary_user_id == user_id:
+    raise ObjectNotFoundException("Could not find this family")
+  # check if association already exists
+  user2family = UserToFamilyModel.query.filter(UserToFamilyModel.family_id == family_id, UserToFamilyModel.id == other_user_id).first()
+  # need to check if role is valid
+  role = request.json.get("role")
+  if not role:
+    raise BadRequestException("No role specified in request")
+  if not user2family:
+    # can't edit an association which does not exist
+    raise ObjectNotFoundException("User/family association not found.")
   else:
     user2family.role = UserRoleEnum(role).name
     db.session.commit()

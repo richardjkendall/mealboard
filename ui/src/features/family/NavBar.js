@@ -106,6 +106,7 @@ export default function NavBar(props) {
   const [showAddFamily, setShowAddFamily] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [boardAddEditMode, setBoardAddEditMode] = useState("add");
+  const [familyAddEditMode, setFamilyAddEditMode] = useState("add");
   const [loadPage] = useState(0);
 
   useEffect(() => {
@@ -138,7 +139,14 @@ export default function NavBar(props) {
     setShowAddBoard(false);
   }
 
+  const editFamily = () => {
+    setShowMenu(false);
+    setFamilyAddEditMode("edit");
+    setShowAddFamily(true);
+  }
+
   const startAddFamily = () => {
+    setFamilyAddEditMode("add");
     setShowAddFamily(true);
   }
 
@@ -225,6 +233,7 @@ export default function NavBar(props) {
       <AddFamily
         show={showAddFamily}
         close={closeAddFamily}
+        mode={familyAddEditMode}
       />
       <AddBoard
         show={showAddBoard} 
@@ -257,7 +266,7 @@ export default function NavBar(props) {
         <DropDownMenu show={showMenu}>
           <ul>
             <li onClick={editBoard}>Board Settings</li>
-            <li>Family Settings</li>
+            <li onClick={editFamily}>Family Settings</li>
             <li>User Settings</li>
           </ul>
         </DropDownMenu>

@@ -9,20 +9,30 @@ from models.shared import db
 
 from utils import success_json_response
 from security import secured
-from error_handler import error_handler, BadRequestException
+from error_handler import ObjectNotFoundException, error_handler, BadRequestException
 
 logger = logging.getLogger(__name__)
 
 user = Blueprint('user', __name__)
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
+other_user_schema = UserSchema(exclude=["enabled", "first_name", "last_name", "join_date"])
 
 @user.route("/", methods=["GET"])
 @error_handler
 @secured
 def get_user(username, groups):
-  user = UserModel.query.filter(UserModel.username == username).first()
-  return user_schema.jsonify(user)
+  # need to check for the username filter
+  username_filter = request.args.get("username")
+  if username_filter:
+    # we have a username_filter so use it
+    user = UserModel.query.filter(UserModel.username == username_filter, UserModel.enabled == True).first()
+    if not user:
+      raise ObjectNotFoundException("User not found")
+    return other_user_schema.jsonify(user)
+  else:
+    user = UserModel.query.filter(UserModel.username == username).first()
+    return other_user_schema.jsonify(user)
 
 @user.route("/", methods=["PUT"])
 @error_handler
