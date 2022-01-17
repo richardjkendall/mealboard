@@ -39,12 +39,12 @@ export const addFamily = createAsyncThunk(
 export const addOtherUser = createAsyncThunk(
   'family/addOtherUser',
   async (item, thunkAPI) => {
-    const response = await axios.put(API_BASE() + `family/${item.family_id}/other_users`, {
+    return axios.put(API_BASE() + `family/${item.family_id}/other_users`, {
       role: "view",
       user_id: item.user_id
-    });
-    console.log("got following response", response.data);
-    return response.data;
+    })
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
   }
 )
 
@@ -134,6 +134,9 @@ const familySlice = createSlice({
     setBoard: (state, action) => {
       state.selectedBoard = action.payload;
     },
+    clearError: state => {
+      state.error = "";
+    }
   },
   extraReducers: {
     [addOtherUser.fulfilled]: (state, action) => {
@@ -156,7 +159,7 @@ const familySlice = createSlice({
     },
     [addOtherUser.rejected]: (state, action) => {
       state.loading = "idle";
-      state.error = action.error.message;
+      state.error = action.payload?.message || action.error.message;
     },
     [deleteOtherUser.fulfilled]: (state, action) => {
       state.loading = "idle";
@@ -318,10 +321,11 @@ const familySlice = createSlice({
   }
 })
 
-export const { setFamily, setBoard } = familySlice.actions;
+export const { setFamily, setBoard, clearError } = familySlice.actions;
 
 export const selectFamilies = state => state.family.families;
 export const selectedFamily = state => state.family.selectedFamily;
 export const selectedBoard = state => state.family.selectedBoard;
+export const selectFamilyError = state => state.family.error;
 
 export default familySlice.reducer;
