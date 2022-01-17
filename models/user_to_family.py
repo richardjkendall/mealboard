@@ -14,10 +14,13 @@ class UserToFamilyModel(db.Model):
   __tablename__ = "user2family"
 
   id = db.Column(db.Integer, index=True, primary_key=True)
+
   family_id = db.Column(db.Integer, db.ForeignKey('family.id'), index=True, nullable=False)
   user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=False)
-  #family = db.relationship('FamilyModel', backref=db.backref('families', lazy=True))
-  user = db.relationship('UserModel', backref=db.backref('users', lazy=True))
+  
+  family = db.relationship('FamilyModel', back_populates="other_users")
+  user = db.relationship('UserModel', back_populates="families")
+  
   role = db.Column(db.Enum(UserRoleEnum), nullable=False)
 
 class UserToFamilySchema(ma.Schema):

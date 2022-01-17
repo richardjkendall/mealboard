@@ -19,7 +19,7 @@ class UserModel(db.Model):
   last_name = db.Column(db.String(120), nullable=False)
   join_date = db.Column(db.DateTime(), nullable=False)
   enabled = db.Column(db.Boolean(), nullable=False)
-  families = db.relationship('UserToFamilyModel')
+  families = db.relationship('UserToFamilyModel', back_populates="user")
 
 class UserSchema(ma.Schema):
   #families = fields.Nested(UserToFamilySchema, many=True)

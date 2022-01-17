@@ -70,7 +70,7 @@ def user_can_edit_family(f):
       logger.info("User has relationship to family with edit role")
       return f(username, groups, user_id, family_id, *args, **kwargs)
     logger.info("User is not family owner and has no relationship to family")
-    raise ObjectNotFoundException("No such family found")
+    raise ObjectNotFoundException("No edit rights")
   
   return decorated_function
 

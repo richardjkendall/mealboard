@@ -21,7 +21,7 @@ curl -X PUT http://localhost:5000/family/ -d @test-data/create_family.json --hea
 curl -X PUT http://localhost:5000/family/ -d @test-data/create_family_2.json --header "Content-Type: application/json"
 
 # add user rjk to family as edit user
-curl -X PUT http://localhost:5000/family/1/other_users/2 -d @test-data/create_user2family.json --header "Content-Type: application/json"
+curl -X PUT http://localhost:5000/family/1/other_users -d @test-data/create_user2family.json --header "Content-Type: application/json"
 
 # get users
 #curl http://localhost:5000/user/

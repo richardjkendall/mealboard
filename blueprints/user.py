@@ -32,7 +32,7 @@ def get_user(username, groups):
     return other_user_schema.jsonify(user)
   else:
     user = UserModel.query.filter(UserModel.username == username).first()
-    return other_user_schema.jsonify(user)
+    return user_schema.jsonify(user)
 
 @user.route("/", methods=["PUT"])
 @error_handler

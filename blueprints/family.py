@@ -24,6 +24,7 @@ family = Blueprint('family', __name__)
 family_schema = FamilySchema(exclude=["boards.weeks", "meals.ingredients"])
 families_schema = FamilySchema(many=True, exclude=["boards.weeks", "meals.ingredients"])
 user_to_family_schema = UserToFamilySchema()
+user_to_families_schema = UserToFamilySchema(many=True)
 users_schema = UserSchema(many=True)
 board_schema = BoardSchema(exclude=["weeks.meals"])
 boards_schema = BoardSchema(many=True, exclude=["weeks.meals"])
@@ -44,7 +45,9 @@ def get_all_families(username, groups, user_id):
   result = families_schema.dump(families)
   # get the families that I'm the indirect owner of
   indirect_families = UserModel.query.get(user_id).families
-  result = result + families_schema.dump(indirect_families)
+  for ind_family in indirect_families:
+    family = FamilyModel.query.get(ind_family.family_id)
+    result = result + families_schema.dump([family])
   return jsonify(result)
 
 @family.route("/<int:family_id>", methods=["GET"])
