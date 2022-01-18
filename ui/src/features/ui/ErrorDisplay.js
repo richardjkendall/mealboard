@@ -13,6 +13,11 @@ import {
   clearError 
 } from '../family/familySlice';
 
+import {
+  selectBoardError,
+  clearError as clearBoardError
+} from '../board/boardSlice';
+
 const ErrorTray = styled.div`
   position: absolute;
   top: 0px;
@@ -39,6 +44,7 @@ export default function ErrorDisplay() {
 
   const errors = useSelector(selectErrors);
   const familyError = useSelector(selectFamilyError);
+  const boardError = useSelector(selectBoardError);
 
   const [loadWidget] = useState(0);
 
@@ -49,9 +55,9 @@ export default function ErrorDisplay() {
     setInterval(() => {
       dispatch(clearOld());
     }, 1000);
-  }, [loadWidget]);
+  }, [loadWidget, dispatch]);
 
-  // need to hook state to get the error messages as they come through
+  // need to hook state to get the family slice error messages as they come through
   useEffect(() => {
     // clear the form
     console.log("got a family error");
@@ -60,6 +66,16 @@ export default function ErrorDisplay() {
       dispatch(clearError());
     }
   }, [familyError, dispatch]);
+
+  // need to hook state to get the family slice error messages as they come through
+  useEffect(() => {
+    // clear the form
+    console.log("got a board error");
+    if(boardError !== "") {
+      dispatch(addError(boardError));
+      dispatch(clearBoardError());
+    }
+  }, [boardError, dispatch]);
 
   const ErrorBoxes = errors.map(error => <ErrorBox key={"error_" + error.id}>{error.error_text}</ErrorBox>)
 

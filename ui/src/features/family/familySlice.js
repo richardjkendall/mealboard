@@ -1,13 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from "axios";
 
-var API_BASE = function() {
-  if(window.location.hostname === "localhost") {
-    return "http://localhost:5000/";
-  } else {
-    return "/"
-  }
-}
+import { API_BASE } from '../../utils/api';
 
 export const fetchAll = createAsyncThunk(
   'family/fetchAll',
@@ -26,13 +20,11 @@ export const fetchAll = createAsyncThunk(
 export const addFamily = createAsyncThunk(
   'family/addFamily',
   async (item, thunkAPI) => {
-    console.log("add family", item);
-    console.log("URL", API_BASE() + 'family/');
-    const response = await axios.put(API_BASE() + 'family/', {
+    return axios.put(API_BASE() + 'family/', {
       family_name: item.family_name,
-    });
-    console.log("got following response", response.data);
-    return response.data;
+    })
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
   }
 )
 
@@ -51,64 +43,64 @@ export const addOtherUser = createAsyncThunk(
 export const editOtherUser = createAsyncThunk(
   'family/editOtherUser',
   async (item, thunkAPI) => {
-    const response = await axios.patch(API_BASE() + `family/${item.family_id}/other_users/${item.other_user_id}`, {
+    return axios.patch(API_BASE() + `family/${item.family_id}/other_users/${item.other_user_id}`, {
       role: item.role,
-    });
-    console.log("got following response", response.data);
-    return response.data;
+    })
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
   }
 )
 
 export const deleteOtherUser = createAsyncThunk(
   'family/deleteOtherUser',
   async (item, thunkAPI) => {
-    const response = await axios.delete(API_BASE() + `family/${item.family_id}/other_users/${item.other_user_id}`);
-    console.log("got following response", response.data);
-    return response.data;
+    return axios.delete(API_BASE() + `family/${item.family_id}/other_users/${item.other_user_id}`)
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
   }
 )
 
 export const addBoard = createAsyncThunk(
   'family/addBoard',
   async (item, thunkAPI) => {
-    const response = await axios.put(API_BASE() + `family/${item.family_id}/board`, {
+    return axios.put(API_BASE() + `family/${item.family_id}/board`, {
       board_name: item.board_name,
       scope: item.private ? "private" : "family"
-    });
-    console.log("got following response", response.data);
-    return response.data;
+    })
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
   }
 )
 
 export const editBoard = createAsyncThunk(
   'family/editBoard',
   async (item, thunkAPI) => {
-    const response = await axios.patch(API_BASE() + `family/${item.family_id}/board/${item.board_id}`, {
+    return axios.patch(API_BASE() + `family/${item.family_id}/board/${item.board_id}`, {
       board_name: item.board_name,
       scope: item.private ? "private" : "family"
-    });
-    console.log("got following response", response.data);
-    return response.data;
+    })
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
   }
 )
 
 export const addMeal = createAsyncThunk(
   'family/addMeal',
   async (item, thunkAPI) => {
-    const response = await axios.put(API_BASE() + `family/${item.family_id}/meal`, {
+    return axios.put(API_BASE() + `family/${item.family_id}/meal`, {
       meal_name: item.meal_name,
-    });
-    console.log("got following response", response.data);
-    return response.data;
+    })
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
   }
 )
 
 export const deleteMeal = createAsyncThunk(
   'family/deleteMeal',
   async (item, thunkAPI) => {
-    const response = await axios.delete(API_BASE() + `family/${item.family_id}/meal/${item.meal_id}`);
-    console.log("got following response", response.data);
-    return response.data;
+    return axios.delete(API_BASE() + `family/${item.family_id}/meal/${item.meal_id}`)
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
   }
 )
 
@@ -181,7 +173,7 @@ const familySlice = createSlice({
     },
     [deleteOtherUser.rejected]: (state, action) => {
       state.loading = "idle";
-      state.error = action.error.message;
+      state.error = action.payload?.message || action.error.message;
     },
     [editOtherUser.fulfilled]: (state, action) => {
       state.loading = "idle";
@@ -209,7 +201,7 @@ const familySlice = createSlice({
     },
     [editOtherUser.rejected]: (state, action) => {
       state.loading = "idle";
-      state.error = action.error.message;
+      state.error = action.payload?.message || action.error.message;
     },
     [editBoard.fulfilled]: (state, action) => {
       state.loading = "idle";
@@ -238,7 +230,7 @@ const familySlice = createSlice({
     },
     [editBoard.rejected]: (state, action) => {
       state.loading = "idle";
-      state.error = action.error.message;
+      state.error = action.payload?.message || action.error.message;
     },
     [addFamily.fulfilled]: (state, action) => {
       state.loading = "idle";
@@ -252,7 +244,7 @@ const familySlice = createSlice({
     },
     [addFamily.rejected]: (state, action) => {
       state.loading = "idle";
-      state.error = action.error.message;
+      state.error = action.payload?.message || action.error.message;
     },
     [addBoard.fulfilled]: (state, action) => {
       state.loading = "idle";
@@ -274,7 +266,7 @@ const familySlice = createSlice({
     },
     [addBoard.rejected]: (state, action) => {
       state.loading = "idle";
-      state.error = action.error.message;
+      state.error = action.payload?.message || action.error.message;
     },
     [deleteMeal.fulfilled]: (state, action) => {
       state.loading = "idle";
@@ -286,7 +278,7 @@ const familySlice = createSlice({
     },
     [deleteMeal.rejected]: (state, action) => {
       state.loading = "idle";
-      state.error = action.error.message;
+      state.error = action.payload?.message || action.error.message;
     },
     [addMeal.fulfilled]: (state, action) => {
       state.loading = "idle";
@@ -298,7 +290,7 @@ const familySlice = createSlice({
     },
     [addMeal.rejected]: (state, action) => {
       state.loading = "idle";
-      state.error = action.error.message;
+      state.error = action.payload?.message || action.error.message;
     },
     [fetchAll.fulfilled]: (state, action) => {
       state.loading = "idle";
@@ -316,7 +308,7 @@ const familySlice = createSlice({
     },
     [fetchAll.rejected]: (state, action) => {
       state.loading = "idle";
-      state.error = action.error.message;
+      state.error = action.payload?.message || action.error.message;
     },
   }
 })

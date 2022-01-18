@@ -186,8 +186,7 @@ export default function AddBoard(props) {
             <label>Family Name:</label>
             <input type="text" value={familyName} onChange={(e) => {setFamilyName(e.target.value)}} />
           </Block>
-
-          <div>
+          {props.mode === "edit" && <div>
             <p>Other Users</p>
             <UserWidget 
               users={family.other_users} 
@@ -195,7 +194,7 @@ export default function AddBoard(props) {
               delete={DeleteOtherUser}
               add={AddOtherUser}
             />
-          </div>
+          </div>}
           {formError && <p ptype="error">{formError}</p>}
           <button type="button" onClick={Submit}>{props.mode === "edit" ? "Edit" : "Add"}</button>
           <button type="button" onClick={Cancel}>Cancel</button>

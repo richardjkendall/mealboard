@@ -2,54 +2,47 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from "axios";
 import moment from "moment";
 
-var API_BASE = function() {
-  if(window.location.hostname === "localhost") {
-    return "http://localhost:5000/";
-  } else {
-    return "/"
-  }
-}
+import { API_BASE } from '../../utils/api';
 
 export const fetchBoard = createAsyncThunk(
   'board/fetchBoard',
   async (item, thunkAPI) => {
-    console.log("fetching board");
-    const response = await axios.get(API_BASE() + `family/${item.family_id}/board/${item.board_id}`);
-    console.log("got following response", response.data);
-    return response.data;
+    return axios.get(API_BASE() + `family/${item.family_id}/board/${item.board_id}`)
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
   }
 )
 
 export const fetchWeek = createAsyncThunk(
   'board/fetchWeek',
   async (item, thunkAPI) => {
-    const response = await axios.get(API_BASE() + `family/${item.family_id}/board/${item.board_id}/week/${item.week_id}`);
-    console.log("got following response", response.data);
-    return response.data;
+    return axios.get(API_BASE() + `family/${item.family_id}/board/${item.board_id}/week/${item.week_id}`)
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
   }
 )
 
 export const addWeek = createAsyncThunk(
   'board/addWeek',
   async (item, thunkAPI) => {
-    const response = await axios.put(API_BASE() + `family/${item.family_id}/board/${item.board_id}/week`, {
+    return axios.put(API_BASE() + `family/${item.family_id}/board/${item.board_id}/week`, {
       week_start_date: item.week_start_date,
-    });
-    console.log("got following response", response.data);
-    return response.data;
+    })
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
   }
 )
 
 export const addMealToWeek = createAsyncThunk(
   'board/addMealToWeek',
   async (item, thunkAPI) => {
-    const response = await axios.put(API_BASE() + `family/${item.family_id}/board/${item.board_id}/week/${item.week_id}/meal`, {
+    return axios.put(API_BASE() + `family/${item.family_id}/board/${item.board_id}/week/${item.week_id}/meal`, {
       meal_id: item.meal_id,
       meal_slot: item.meal_slot,
       day: item.day
-    });
-    console.log("got following response", response.data);
-    return response.data;
+    })
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
   }
 )
 
@@ -90,6 +83,9 @@ export const boardSlice = createSlice({
     switchWeek: (state, action) => {
       state.selectedWeek = action.payload;
     },
+    clearError: state => {
+      state.error = "";
+    }
   },
   extraReducers: {
     [addWeek.fulfilled]: (state, action) => {
@@ -104,7 +100,7 @@ export const boardSlice = createSlice({
     },
     [addWeek.rejected]: (state, action) => {
       state.loading = "idle";
-      state.error = action.error.message;
+      state.error = action.payload?.message || action.error.message;
     },
     [addMealToWeek.fulfilled]: (state, action) => {
       state.loading = "idle";
@@ -116,7 +112,7 @@ export const boardSlice = createSlice({
     },
     [addMealToWeek.rejected]: (state, action) => {
       state.loading = "idle";
-      state.error = action.error.message;
+      state.error = action.payload?.message || action.error.message;
     },
     [fetchWeek.fulfilled]: (state, action) => {
       state.loading = "idle";
@@ -128,7 +124,7 @@ export const boardSlice = createSlice({
     },
     [fetchWeek.rejected]: (state, action) => {
       state.loading = "idle";
-      state.error = action.error.message;
+      state.error = action.payload?.message || action.error.message;
     },
     [fetchBoard.fulfilled]: (state, action) => {
       state.loading = "idle";
@@ -167,17 +163,19 @@ export const boardSlice = createSlice({
     },
     [fetchBoard.rejected]: (state, action) => {
       state.loading = "idle";
-      state.error = action.error.message;
+      state.error = action.payload?.message || action.error.message;
     },
   }
 });
 
-export const { clearBoard, deleteMealFromWeek, switchWeek } = boardSlice.actions;
+export const { clearBoard, deleteMealFromWeek, switchWeek, clearError } = boardSlice.actions;
 
 export const selectDays = state => state.board.days;
 export const selectMeals = state => state.board.meals;
 export const selectBoard = state => state.board.board;
 export const selectWeek = state => state.board.week;
 export const selectSelectedWeek = state => state.board.selectedWeek;
+export const selectBoardError = state => state.board.error;
+
 
 export default boardSlice.reducer;
