@@ -354,6 +354,24 @@ def get_meal_for_week(username, groups, user_id, family_id, board_id, week_id, w
     raise ObjectNotFoundException("Meal not found")
   return week_to_meal_schema.jsonify(week_to_meal)
 
+@family.route("/<int:family_id>/board/<int:board_id>/week/<int:week_id>/meal/<int:week_to_meal_id>", methods=["DELETE"])
+@error_handler
+@secured
+@valid_user
+@user_can_edit_family
+@user_can_see_board
+def delete_meal_from_week(username, groups, user_id, family_id, board_id, week_id, week_to_meal_id):
+  week_to_meal = WeekToMealModel.query.filter(WeekToMealModel.week_id==week_id, WeekToMealModel.id == week_to_meal_id).first()
+  if not week_to_meal:
+    raise ObjectNotFoundException("Association was not found")
+  db.session.delete(week_to_meal)
+  db.session.commit()
+  return success_json_response({
+    "week_to_meal_id": week_to_meal_id,
+    "status": "deleted"
+  })
+
+
 @family.route("/<int:family_id>/board/<int:board_id>/week/<int:week_id>/meal", methods=["PUT", "POST"])
 @error_handler
 @secured

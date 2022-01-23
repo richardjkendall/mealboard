@@ -21,8 +21,11 @@ import {
   fetchWeek,
   addMealToWeek,
   deleteMealFromWeek,
-  addWeek
+  addWeek,
+  removeMealFromWeek
 } from './boardSlice';
+
+import binimg from './bin.png';
 
 const Row = styled.div`
   display: flex;
@@ -150,6 +153,24 @@ const Blockout = styled.div`
   top: 0;
   background: rgba(51, 51, 51, 0.7);
   z-index: 10;
+`
+
+const Wastebasket = styled.div`
+  position: absolute;
+  border-radius: 50%;
+  background-color: white;
+  width: 200px;
+  height: 200px;
+  bottom: 100px;
+  left: calc(50vw - 100px);
+
+  img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+  }
 `
 
 const MealPill = ({mealName, onDS, onClick, selectedMeal}) => {
@@ -307,6 +328,22 @@ export default function Board(props) {
     }
   }
 
+  const onDragMealToDelete = (e) => {
+    e.preventDefault();
+    var week_to_meal_id = e.dataTransfer.getData("week_to_meal");
+    console.log("delete, meal id", week_to_meal_id);
+
+    dispatch(removeMealFromWeek({
+      family_id: selectedFam.id,
+      board_id: selectedBoard.id,
+      week_id: selectedWeek.id,
+      week_to_meal_id: week_to_meal_id
+    }));
+
+    setBeingDragged(0);
+    setDragMode("");
+  }
+
   const selectMealPill = (meal) => {
     console.log("selecting meal id", meal);
     if(selectedMeal === meal) {
@@ -364,7 +401,11 @@ export default function Board(props) {
 
   return (
     displayBoard && <div>
-      {dragMode === "delete" && <Blockout/>}
+      {dragMode === "delete" && <Blockout>
+        <Wastebasket>
+          <img alt="bin" src={binimg} onDrop={onDragMealToDelete} onDragOver={(e) => {e.preventDefault()}} />
+        </Wastebasket>
+      </Blockout>}
       <AddEditMeal show={showAddEditMeal} close={closeAddMeal} />
       <Row>
         <WeekHeader></WeekHeader>

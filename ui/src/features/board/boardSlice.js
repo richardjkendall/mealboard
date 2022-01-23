@@ -46,6 +46,16 @@ export const addMealToWeek = createAsyncThunk(
   }
 )
 
+export const removeMealFromWeek = createAsyncThunk(
+  'board/removeMealFromWeek',
+  async (item, thunkAPI) => {
+    return axios.delete(API_BASE() + `family/${item.family_id}/board/${item.board_id}/week/${item.week_id}/meal/${item.week_to_meal_id}`)
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
+  }
+)
+
+
 export const boardSlice = createSlice({
   name: 'board',
   initialState: {
@@ -88,6 +98,19 @@ export const boardSlice = createSlice({
     }
   },
   extraReducers: {
+    [removeMealFromWeek.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      state.week.meals = state.week.meals.filter(a => a.id !== action.payload.week_to_meal_id);
+    },
+    [removeMealFromWeek.pending]: state => {
+      state.loading = "yes";
+    },
+    [removeMealFromWeek.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.payload?.message || action.error.message;
+    },
+
     [addWeek.fulfilled]: (state, action) => {
       state.loading = "idle";
       state.error = "";
