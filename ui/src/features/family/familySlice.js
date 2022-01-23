@@ -108,6 +108,7 @@ const familySlice = createSlice({
   name: 'family',
   initialState: { 
     families: [], 
+    gotFamilies: false,
     selectedFamily: {},
     selectedBoard: {},
     loading: 'idle', 
@@ -296,6 +297,7 @@ const familySlice = createSlice({
       state.loading = "idle";
       state.error = "";
       state.families = action.payload;
+      state.gotFamilies = true;
       if(action.payload.length > 0) {
         state.selectedFamily = action.payload[0];
         if(action.payload[0].boards.length > 0) {
@@ -319,5 +321,7 @@ export const selectFamilies = state => state.family.families;
 export const selectedFamily = state => state.family.selectedFamily;
 export const selectedBoard = state => state.family.selectedBoard;
 export const selectFamilyError = state => state.family.error;
+export const selectGotFamilies = state => state.family.gotFamilies;
+
 
 export default familySlice.reducer;

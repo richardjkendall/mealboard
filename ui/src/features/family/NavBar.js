@@ -5,8 +5,16 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import AddBoard from '../ui/AddBoard';
 import AddFamily from '../ui/AddFamily';
+import AddUser from '../ui/AddUser';
 import { GetThisMonday } from '../../utils/dates';
 import cog from './cog.png';
+
+import { 
+  fetchUser,
+  selectNewUser,
+  selectGotUser,
+  selectUser
+} from '../user/userSlice';
 
 import { 
   fetchAll,
@@ -14,7 +22,9 @@ import {
   selectedFamily,
   selectedBoard,
   setFamily,
-  setBoard
+  setBoard,
+  selectGotFamilies,
+  addFamily
 } from './familySlice';
 
 import {
@@ -33,6 +43,7 @@ const NavContainer = styled.div`
   width: calc(100vw - 5px);
   height: 50px;
   display: flex;
+  align-items: center;
 `
 
 const NavDivider = styled.div`
@@ -49,6 +60,7 @@ const NavSelect = styled.select`
 
 const WeekSelector = styled.div`
   display: flex;
+  align-items: center;
 
   button {
     margin-left: 5px;
@@ -101,17 +113,40 @@ export default function NavBar(props) {
   const selected_Board = useSelector(selectedBoard);
   const board = useSelector(selectBoard);
   const selectedWeek = useSelector(selectSelectedWeek);
+  const newUser = useSelector(selectNewUser);
+  const gotUser = useSelector(selectGotUser);
+  const gotFamilies = useSelector(selectGotFamilies);
+  const user = useSelector(selectUser);
 
   const [showAddBoard, setShowAddBoard] = useState(false);
   const [showAddFamily, setShowAddFamily] = useState(false);
+  const [showAddUser, setShowAddUser] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [boardAddEditMode, setBoardAddEditMode] = useState("add");
   const [familyAddEditMode, setFamilyAddEditMode] = useState("add");
+  const [userAddEditMode, setUserAddEditMode] = useState("add");
   const [loadPage] = useState(0);
 
   useEffect(() => {
-    dispatch(fetchAll())
+    dispatch(fetchUser());
   }, [loadPage, dispatch]);
+
+  useEffect(() => {
+    if(gotUser === true) {
+      dispatch(fetchAll());
+    }
+  }, [gotUser, dispatch]);
+
+  useEffect(() => {
+    if(gotFamilies === true) {
+      if(families.length === 0) {
+        console.log("we need to create a family");
+        dispatch(addFamily({
+          family_name: `${user.first_name}'s Family`
+        }));
+      }
+    }
+  }, [gotFamilies, families, user, dispatch])
 
   useEffect(() => {
     if(typeof(selectedFam.id) !== "undefined" && typeof(selected_Board.id) !== "undefined") {
@@ -123,6 +158,13 @@ export default function NavBar(props) {
       dispatch(clearBoard());
     }
   }, [selected_Board.id, selectedFam.id, dispatch]);
+
+  useEffect(() => {
+    if(newUser === true) {
+      setUserAddEditMode("add");
+      setShowAddUser(true);
+    }
+  }, [newUser]);
 
   const editBoard = () => {
     setShowMenu(false);
@@ -152,6 +194,21 @@ export default function NavBar(props) {
 
   const closeAddFamily = () => {
     setShowAddFamily(false);
+  }
+
+  const editUser = () => {
+    setShowMenu(false);
+    setUserAddEditMode("edit");
+    setShowAddUser(true);
+  }
+
+  /*const startAddUser = () => {
+    setUserAddEditMode("add");
+    setShowAddUser(true);
+  }*/
+
+  const closeAddUser = () => {
+    setShowAddUser(false);
   }
 
   const gotoPrevWeek = () => {
@@ -240,6 +297,11 @@ export default function NavBar(props) {
         close={closeAddBoard} 
         mode={boardAddEditMode}
       />
+      <AddUser
+        show={showAddUser} 
+        close={closeAddUser} 
+        mode={userAddEditMode}
+      />
       <NavContainer>
         <p><b>Meal</b>Board</p>
         <NavDivider/>
@@ -267,7 +329,7 @@ export default function NavBar(props) {
           <ul>
             <li onClick={editBoard}>Board Settings</li>
             <li onClick={editFamily}>Family Settings</li>
-            <li>User Settings</li>
+            <li onClick={editUser}>User Settings</li>
           </ul>
         </DropDownMenu>
       </NavContainer>

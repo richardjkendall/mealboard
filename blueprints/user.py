@@ -2,13 +2,14 @@ import logging
 from datetime import datetime
 import logging
 from flask import Blueprint, request
+from werkzeug.datastructures import _omd_bucket
 
 from models.user_model import UserModel, UserSchema
 from models.family_model import FamilyModel
 from models.shared import db
 
 from utils import success_json_response
-from security import secured
+from security import secured, valid_user
 from error_handler import ObjectNotFoundException, error_handler, BadRequestException
 
 logger = logging.getLogger(__name__)
@@ -32,7 +33,24 @@ def get_user(username, groups):
     return other_user_schema.jsonify(user)
   else:
     user = UserModel.query.filter(UserModel.username == username).first()
+    if not user:
+      raise ObjectNotFoundException("User not found")
     return user_schema.jsonify(user)
+
+@user.route("/", methods=["PATCH"])
+@error_handler
+@secured
+@valid_user
+def edit_user(username, groups, user_id):
+  user = UserModel.query.filter(UserModel.username == username).first()
+  if not user:
+    raise ObjectNotFoundException("No user exists")
+  if "first_name" in request.json:
+    setattr(user, "first_name", request.json["first_name"])
+  if "last_name" in request.json:
+    setattr(user, "last_name", request.json["last_name"])
+  db.session.commit()
+  return user_schema.jsonify(user)
 
 @user.route("/", methods=["PUT"])
 @error_handler

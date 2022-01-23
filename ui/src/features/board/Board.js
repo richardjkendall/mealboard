@@ -92,11 +92,13 @@ const MealsTrayHeader = styled.div`
   align-items: baseline;
   margin: 5px;
   padding-left: 5px;
+  align-items: center;
 `
 
 const HeaderCellSmall = styled.div`
   flex: 0 1 auto;
   display: flex;
+  align-items: center;
 
   p {
     margin-top: 5px;
@@ -134,12 +136,33 @@ const Pill = styled.div`
   &[data-selected="yes"] {
     background-color: red;
   }
+
+  &[data-beingdragged="yes"] {
+    z-index: 20;
+  }
+`
+
+const Blockout = styled.div`
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  background: rgba(51, 51, 51, 0.7);
+  z-index: 10;
 `
 
 const MealPill = ({mealName, onDS, onClick, selectedMeal}) => {
-  
   return(
     <Pill draggable={true} onDragStart={onDS} onClick={onClick} data-selected={selectedMeal}>
+      {mealName}
+    </Pill>
+  )
+}
+
+const MealCellPill = ({mealName, onDS, onDE, onClick, beingDragged}) => {
+  return(
+    <Pill draggable={true} onDragStart={onDS} onDragEnd={onDE} onClick={onClick} data-beingdragged={beingDragged}>
       {mealName}
     </Pill>
   )
@@ -161,6 +184,8 @@ export default function Board(props) {
   const [displayBoard, setDisplayBoard] = useState(false);
   const [showAddEditMeal, setShowAddEditMeal] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(0);
+  const [dragMode, setDragMode] = useState("");
+  const [beingDragged, setBeingDragged] = useState(0);
   
   useEffect(() => {
     if(typeof(selectedFam.id) !== "undefined" && typeof(selectedBoard.id) !== "undefined" && typeof(selectedWeek.id) !== "undefined") {
@@ -224,8 +249,10 @@ export default function Board(props) {
 
   const onDragEnterMealSlot = (meal, day, e) => {
     console.log("drag entered meal-slot", meal, day);
-    setDragDay(day);
-    setDragMealSlot(meal);
+    if(dragMode === "addtoslot") {
+      setDragDay(day);
+      setDragMealSlot(meal);
+    }
   }
 
   const onDragLeaveMealSlot = (meal, day, e) => {
@@ -235,30 +262,49 @@ export default function Board(props) {
     }
   }
   const onDragMealStart = (meal, e) => {
+    setDragMode("addtoslot");
     e.dataTransfer.setData("meal_id", meal);
     console.log("set meal_id to", meal);
   }
 
+  const onDragExistingMealStart = (meal, e) => {
+    console.log("starting drag", meal);
+    setBeingDragged(meal);
+    setDragMode("delete");
+    e.dataTransfer.setData("week_to_meal", meal);
+  }
+
+  const onDragExistingMealEnd = (e) => {
+    if(e?.dataTransfer?.dropEffect === "none") {
+      console.log("no drag action");
+      setBeingDragged(0);
+      setDragMode("");
+    }
+  }
+
   const onDragMealDrop = (meal, day, e) => {
     e.preventDefault();
-    var meal_id = e.dataTransfer.getData("meal_id");
-    console.log("dropped meal", meal_id, "on", day, meal);
-    var dayCount = days.findIndex(dayName => dayName === day) + 1;
-    console.log("day count", dayCount, "start date", selectedWeek.week_start_date);
-    var date = moment(selectedWeek.week_start_date).add(dayCount, 'days');
-    console.log("date for day", date.toISOString().substring(0,"YYYY-MM-DD".length));
+    if(dragMode === "addtoslot") {
+      var meal_id = e.dataTransfer.getData("meal_id");
+      console.log("dropped meal", meal_id, "on", day, meal);
+      var dayCount = days.findIndex(dayName => dayName === day) + 1;
+      console.log("day count", dayCount, "start date", selectedWeek.week_start_date);
+      var date = moment(selectedWeek.week_start_date).add(dayCount, 'days');
+      console.log("date for day", date.toISOString().substring(0,"YYYY-MM-DD".length));
 
-    dispatch(addMealToWeek({
-      family_id: selectedFam.id,
-      board_id: selectedBoard.id,
-      week_id: selectedWeek.id,
-      meal_slot: meal,
-      meal_id: meal_id,
-      day: date.toISOString().substring(0, "YYYY-MM-DD".length)
-    }));
-    
-    setDragDay("");
-    setDragMealSlot("");
+      dispatch(addMealToWeek({
+        family_id: selectedFam.id,
+        board_id: selectedBoard.id,
+        week_id: selectedWeek.id,
+        meal_slot: meal,
+        meal_id: meal_id,
+        day: date.toISOString().substring(0, "YYYY-MM-DD".length)
+      }));
+      
+      setDragDay("");
+      setDragMealSlot("");
+      setDragMode("");
+    }
   }
 
   const selectMealPill = (meal) => {
@@ -276,7 +322,15 @@ export default function Board(props) {
       var dayCount = days.findIndex(dayName => dayName === day) + 1;
       var date = moment(selectedWeek.week_start_date).add(dayCount, 'days');
       date = date.toISOString().substring(0, "YYYY-MM-DD".length);
-      const mealPills = Object.keys(week).length !== 0 && week.meals.filter(m => m.meal_slot === meal && m.day.substring(0, 10) === date).map(m => <Pill key={"week_to_meal_" + m.id}>{m.meal.meal_name}</Pill>);
+      const mealPills = Object.keys(week).length !== 0 && week.meals.filter(m => m.meal_slot === meal && m.day.substring(0, 10) === date).map(m => 
+        <MealCellPill 
+          key={"week_to_meal_" + m.id}
+          mealName={m.meal.meal_name}
+          onDS={onDragExistingMealStart.bind(null, m.id)}
+          onDE={onDragExistingMealEnd}
+          beingDragged={beingDragged === m.id ? "yes" : "no"}
+        />
+      );
 
       return (
         <MealCell 
@@ -310,6 +364,7 @@ export default function Board(props) {
 
   return (
     displayBoard && <div>
+      {dragMode === "delete" && <Blockout/>}
       <AddEditMeal show={showAddEditMeal} close={closeAddMeal} />
       <Row>
         <WeekHeader></WeekHeader>

@@ -12,7 +12,8 @@ export const errorSlice = createSlice({
       state.errors.push({
         created: moment().toISOString(),
         id: uuidv4(),
-        error_text: action.payload
+        error_text: action.payload,
+        // can we add the delete timeout here?
       });
     },
     clearOld: state => {
