@@ -2,19 +2,29 @@ import logging
 import os
 from flask import Flask, request, redirect
 from flask_cors import CORS
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 from utils import success_json_response
 from security import secured
 from error_handler import error_handler
 
 from models.shared import db, ma
+from models.user_model import UserModel
+
+from create_tables import build_all_tables
 
 app = Flask(__name__,
             static_url_path="/",
             static_folder="static")
 CORS(app)
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "data.db")
+#basedir = os.path.abspath(os.path.dirname(__file__))
+#app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "data.db")
+
+db_user = os.environ.get("DB_USER")
+db_password = os.environ.get("DB_PASSWORD")
+db_host = os.environ.get("DB_HOST")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{db_user}:{db_password}@{db_host}:5432/mealboard"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 ma.init_app(app)
@@ -52,6 +62,28 @@ def gotoindex():
   else:
     return redirect("/index.html", code=302)
 
+@app.route("/api/deploy")
+@error_handler
+def maketables():
+  # check if DB has been initialised, and if not then do so
+  try:
+    user = UserModel.query.filter(UserModel.id == 1).first()
+    return success_json_response({
+      "status": "tables exist"
+    })
+  except OperationalError as err:
+    logger.info("Got an error trying to query database")
+    build_all_tables(db, app)
+    return success_json_response({
+      "status": "built tables"
+    })
+  except ProgrammingError as err:
+    logger.info("Got an error trying to query database")
+    build_all_tables(db, app)
+    return success_json_response({
+      "status": "built tables"
+    })
+
 @app.route("/api")
 @error_handler
 @secured
@@ -62,8 +94,8 @@ def root(username, groups):
     "groups": groups
   })
 
-app.register_blueprint(user, url_prefix="/user")
-app.register_blueprint(family, url_prefix="/family")
+app.register_blueprint(user, url_prefix="/api/user")
+app.register_blueprint(family, url_prefix="/api/family")
 
 if __name__ == "__main__":
   app.run(debug=True, host="0.0.0.0", port=5000)
