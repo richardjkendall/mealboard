@@ -133,7 +133,7 @@ const Pill = styled.div`
   border-radius: 5px;
   padding: 5px;
   color: white;
-  height: 20px;
+  height: auto;
   margin: 5px;
 
   &[data-selected="yes"] {
@@ -296,11 +296,12 @@ export default function Board(props) {
   }
 
   const onDragExistingMealEnd = (e) => {
-    if(e?.dataTransfer?.dropEffect === "none") {
+    if(dragMode === "delete" && (e?.dataTransfer?.dropEffect === "none" || e?.dataTransfer?.dropEffect === "copy")) {
       console.log("no drag action");
       setBeingDragged(0);
       setDragMode("");
     }
+    //console.log("drag meal end", e?.dataTransfer);
   }
 
   const onDragMealDrop = (meal, day, e) => {

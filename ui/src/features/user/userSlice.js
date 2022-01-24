@@ -4,7 +4,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { API_BASE } from "../../utils/api";
 
 export const checkUserExists = async (user) => {
-  var res = await axios.get(API_BASE() + "user", {params: {username: user}})
+  var res = await axios.get(API_BASE() + "user/", {params: {username: user}})
     .then(resp => {
       // user was found
       return {
