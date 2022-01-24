@@ -6,7 +6,7 @@ import { API_BASE } from '../../utils/api';
 export const fetchAll = createAsyncThunk(
   'family/fetchAll',
   async (thunkAPI) => {
-    const response = await axios.get(API_BASE() + "family");
+    const response = await axios.get(API_BASE() + "family/");
     console.log("got following response", response.data);
     var families = [];
     response.data.forEach(element => {
