@@ -17,7 +17,7 @@ if [ "$check_output" == "$okay_string" ]; then
   echo "OKAY: downloaded file matches the expected checksum"
   mkdir -p ~/.local/bin/img
   mv ./img ~/.local/bin/img
-  chmod +x ~/.local/bin/img
+  chmod +x ~/.local/bin/img/img
 else
   echo "ERROR: checksum does not match"
   exit 1
@@ -25,7 +25,7 @@ fi
 echo "OKAY: img is downloaded and installed."
 
 echo "UPDATING: path to include img"
-export PATH=$PATH:~/.local/bin/img
+export PATH=$PATH:~/.local/bin/img/
 echo "DONE: path updated"
 
 USER=go img build -t $REGISTRY/mealboard .
