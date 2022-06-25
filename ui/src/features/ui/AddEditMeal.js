@@ -52,7 +52,7 @@ export default function AddEditMeal(props) {
           </Block>
           {formError && <p ptype="error">{formError}</p>}
           <button type="button" onClick={Submit}>Add</button>
-          <button type="button" onClick={Cancel}>Cancel</button>
+          <button type="button" onClick={Cancel}>Close</button>
         </Form>
       </ModalBox>
     </div>

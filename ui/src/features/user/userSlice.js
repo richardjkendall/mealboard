@@ -26,6 +26,28 @@ export const checkUserExists = async (user) => {
   return res;
 }
 
+export const inviteNewUser = async (user) => {
+  var res = await axios.post(API_BASE() + "user/invite", {
+    proposed_username: user
+  })
+  .then(resp => {
+    // user was found
+    return {
+      status: "okay",
+      username: resp.data.username,
+      id: resp.data.id
+    }
+  }).catch(err => {
+    console.log("error inviting user", err);
+    return {
+      status: "error",
+      reason: err?.response?.data
+    }
+  });
+  console.log(res);
+  return res;
+}
+
 export const fetchUser = createAsyncThunk(
   'user/fetchUser',
   async (item, thunkAPI) => {
@@ -67,6 +89,7 @@ export const userSlice = createSlice({
     user: {},
     gotUser: false,
     newUser: false,
+    invitedUser: false,
   },
   reducers: {
     
@@ -81,6 +104,7 @@ export const userSlice = createSlice({
       state.user = action.payload;
       state.gotUser = true;
       state.newUser = false;
+      state.invitedUser = false;
     },
     [createUser.pending]: state => {
       state.loading = "yes";
@@ -95,6 +119,9 @@ export const userSlice = createSlice({
       state.error = "";
       state.user.first_name = action.payload.first_name;
       state.user.last_name = action.payload.last_name;
+      state.gotUser = true;
+      state.invitedUser = false;
+      state.newUser = false;
     },
     [editUser.pending]: state => {
       state.loading = "yes";
@@ -108,6 +135,17 @@ export const userSlice = createSlice({
       state.error = "";
       state.user = action.payload;
       state.gotUser = true;
+      state.newUser = false;
+      state.invitedUser = false;
+
+      // if the first_name and last_name are null this is a invited user, so still new
+      console.log("user payload", action.payload);
+      if(action.payload.first_name === null && action.payload.last_name === null) {
+        console.log("user is invited (has null first_name and last_name)");
+        state.newUser = true;
+        state.invitedUser = true;
+        state.gotUser = false;
+      }
     },
     [fetchUser.pending]: state => {
       state.loading = "yes";
@@ -129,6 +167,7 @@ export const { clearError } = userSlice.actions;
 export const selectUser = state => state.user.user;
 export const selectGotUser = state => state.user.gotUser;
 export const selectNewUser = state => state.user.newUser;
+export const selectInvitedUser = state => state.user.invitedUser;
 
 
 export default userSlice.reducer;

@@ -52,6 +52,33 @@ def edit_user(username, groups, user_id):
   db.session.commit()
   return user_schema.jsonify(user)
 
+@user.route("/invite", methods=["POST"])
+@error_handler
+@secured
+def invite_user(username, groups):
+  """
+  This method creates a user record ready for a new user to sign up so they can use a family group that has been shared with them
+  """
+  if not request.json:
+    logger.info("Request is not JSON")
+    raise BadRequestException("Request should be JSON")
+  else:
+    proposed_username = request.json["proposed_username"]
+    user = UserModel.query.filter(UserModel.username == proposed_username).first()
+    if user:
+      logger.info("Trying to create user where a record already exists")
+      raise BadRequestException("Cannot create a new user when the user exists already")
+    else:
+      new_user = UserModel(
+        username = proposed_username,
+        join_date = datetime.now(),
+        enabled = True
+      )
+      db.session.add(new_user)
+      db.session.commit()
+      user = UserModel.query.get(new_user.id)
+      return user_schema.jsonify(user)
+
 @user.route("/", methods=["PUT"])
 @error_handler
 @secured

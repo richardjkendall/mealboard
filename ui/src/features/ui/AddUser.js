@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { 
   selectUser,
+  selectInvitedUser,
   editUser,
   createUser
 } from '../user/userSlice';
@@ -13,6 +14,7 @@ import { Form, Block } from './FormWidgets';
 export default function AddUser(props) {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
+  const invitedUser = useSelector(selectInvitedUser);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -34,7 +36,7 @@ export default function AddUser(props) {
       if(lastName === "") {
         setFormError("Please enter your last name")
       } else {
-        if(props.mode === "add") {
+        if(props.mode === "add" && !invitedUser) {
           dispatch(createUser({
             first_name: firstName,
             last_name: lastName,

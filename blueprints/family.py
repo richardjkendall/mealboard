@@ -59,6 +59,26 @@ def get_family(username, groupds, user_id, family_id):
   family = FamilyModel.query.get_or_404(family_id)
   return family_schema.jsonify(family)
 
+@family.route("/<int:family_id>", methods=["PATCH"])
+@error_handler
+@secured
+@valid_user
+@user_can_edit_family
+def edit_family(username, groups, user_id, family_id):
+  # get the family, must be the owner to make these changes
+  family = FamilyModel.query.get_or_404(family_id)
+  if not family.primary_user_id == user_id:
+    raise ObjectNotFoundException("Only family owner can edit a family")
+  if not request.json:
+    logger.info("Request is not JSON")
+    raise BadRequestException("Request should be JSON")
+  else:
+    if "family_name" in request.json:
+      setattr(family, "family_name", request.json["family_name"])
+    db.session.commit()
+    return family_schema.jsonify(family)
+  
+
 @family.route("/<int:family_id>/meal", methods=["GET"])
 @error_handler
 @secured
@@ -143,7 +163,7 @@ def add_other_user(username, groups, user_id, family_id):
   # get the family, must be the owner to make these changes
   family = FamilyModel.query.get_or_404(family_id)
   if not family.primary_user_id == user_id:
-    raise ObjectNotFoundException("Could not find this family")
+    raise ObjectNotFoundException("Only family owner can edit a family")
   # need user_id
   supplied_user_id = request.json.get("user_id")
   if not supplied_user_id:
@@ -179,7 +199,7 @@ def delete_other_user(username, groups, user_id, family_id, other_user_id):
   # get the family, must be the owner to make these changes
   family = FamilyModel.query.get_or_404(family_id)
   if not family.primary_user_id == user_id:
-    raise ObjectNotFoundException("Could not find this family")
+    raise ObjectNotFoundException("Only family owner can edit a family")
   # check if association already exists
   user2family = UserToFamilyModel.query.filter(UserToFamilyModel.family_id == family_id, UserToFamilyModel.id == other_user_id).first()
   if not user2family:
@@ -202,7 +222,7 @@ def edit_other_user(username, groups, user_id, family_id, other_user_id):
   # get the family, must be the owner to make these changes
   family = FamilyModel.query.get_or_404(family_id)
   if not family.primary_user_id == user_id:
-    raise ObjectNotFoundException("Could not find this family")
+    raise ObjectNotFoundException("Only family owner can edit a family")
   # check if association already exists
   user2family = UserToFamilyModel.query.filter(UserToFamilyModel.family_id == family_id, UserToFamilyModel.id == other_user_id).first()
   # need to check if role is valid

@@ -28,6 +28,17 @@ export const addFamily = createAsyncThunk(
   }
 )
 
+export const editFamily = createAsyncThunk(
+  'family/editFamily',
+  async (item, thunkAPI) => {
+    return axios.patch(API_BASE() + `family/${item.family_id}`, {
+      family_name: item.family_name,
+    })
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
+  }
+)
+
 export const addOtherUser = createAsyncThunk(
   'family/addOtherUser',
   async (item, thunkAPI) => {
@@ -309,6 +320,27 @@ const familySlice = createSlice({
       state.loading = "yes";
     },
     [fetchAll.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.payload?.message || action.error.message;
+    },
+
+    [editFamily.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      state.families = state.families.map(f => {
+        if(f.id === action.payload.id) {
+          return action.payload;
+        } else {
+          return f;
+        }
+      })
+      state.selectedFamily = action.payload;
+      //state.selectedBoard = {};
+    },
+    [editFamily.pending]: state => {
+      state.loading = "yes";
+    },
+    [editFamily.rejected]: (state, action) => {
       state.loading = "idle";
       state.error = action.payload?.message || action.error.message;
     },

@@ -72,7 +72,7 @@ export default function AddBoard(props) {
           </Block>
           {formError && <p ptype="error">{formError}</p>}
           <button type="button" onClick={Submit}>{props.mode === "add" ? "Add" : "Edit"}</button>
-          <button type="button" onClick={Cancel}>Cancel</button>
+          <button type="button" onClick={Cancel}>Close</button>
         </Form>
       </ModalBox>
     </div>

@@ -15,9 +15,9 @@ class UserModel(db.Model):
 
   id = db.Column(db.Integer, index=True, primary_key=True)
   username = db.Column(db.String(120), index=True, nullable=False)
-  first_name = db.Column(db.String(120), nullable=False)
-  last_name = db.Column(db.String(120), nullable=False)
-  join_date = db.Column(db.DateTime(), nullable=False)
+  first_name = db.Column(db.String(120), nullable=True)
+  last_name = db.Column(db.String(120), nullable=True)
+  join_date = db.Column(db.DateTime(), nullable=True)
   enabled = db.Column(db.Boolean(), nullable=False)
   families = db.relationship('UserToFamilyModel', back_populates="user")
 

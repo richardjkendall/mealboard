@@ -126,6 +126,7 @@ const MealsList = styled.div`
   display: flex;
   width: 100%;
   flex-direction: row;
+  flex-wrap: wrap;
 `
 
 const Pill = styled.div`

@@ -2,7 +2,7 @@
 security.py
 Contains code which manages access to API routes
 """
-import logging
+import logging, os
 from functools import wraps
 from flask import request
 from sqlalchemy import or_
@@ -116,6 +116,6 @@ def secured(f):
         return f(username, [], *args, **kwargs)
     else:
       logger.info("X-Remote-User header is missing from request")
-      return f("anonymous", [], *args, **kwargs)
+      return f(os.environ.get("INJECTED_USER"), [], *args, **kwargs)
   
   return decorated_function

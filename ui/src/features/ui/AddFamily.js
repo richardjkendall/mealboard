@@ -4,13 +4,17 @@ import styled from 'styled-components';
 
 import { 
   addFamily,
+  editFamily,
   selectedFamily,
   editOtherUser,
   deleteOtherUser,
   addOtherUser
 } from '../family/familySlice';
 
-import { checkUserExists } from '../user/userSlice';
+import { 
+  checkUserExists, 
+  inviteNewUser
+} from '../user/userSlice';
 
 import ModalBox from './ModalBox';
 import { Form, Block } from './FormWidgets';
@@ -79,7 +83,7 @@ const UserWidget = (props) => {
   }
 
   const Users = props.users.map(user => <UserRow key={"usermap_" + user.id}>
-    <UserNameCell>{user.user.username} ({user.user.first_name} {user.user.last_name})</UserNameCell>
+    <UserNameCell>{user.user.username} ({user.user.first_name === null && user.user.last_name === null ? <i>New User</i> : user.user.first_name + " " + user.user.last_name})</UserNameCell>
     <UserRoleCell>
       <select value={user.role} onChange={e => props.changeRole.bind(null, user.id)(e.target.value)}>
         <option value="edit">Edit</option>
@@ -131,10 +135,20 @@ export default function AddBoard(props) {
       // need to throw an error
       setFormError("Please specify a family group name");
     } else {
-      dispatch(addFamily({
-        family_name: familyName
-      }));
-      props.close("added");
+      if(props.mode === "edit") {
+        // this is the edit scenario
+        dispatch(editFamily({
+          family_name: familyName,
+          family_id: family.id
+        }));
+        props.close("edited");
+      } else {
+        // this is the add scenario
+        dispatch(addFamily({
+          family_name: familyName
+        }));
+        props.close("added");
+      }
     }
   }
 
@@ -165,6 +179,10 @@ export default function AddBoard(props) {
     // first check for the user
     var resp = await checkUserExists(user);
     console.log("back from search", resp);
+    if(resp.status === "error" && resp.reason === "User could not be found") {
+      // need to try and create the user
+      resp = await inviteNewUser(user);
+    }
     if(resp.status === "error") {
       setFormError(resp.reason);
     } else {
@@ -197,7 +215,7 @@ export default function AddBoard(props) {
           </div>}
           {formError && <p ptype="error">{formError}</p>}
           <button type="button" onClick={Submit}>{props.mode === "edit" ? "Edit" : "Add"}</button>
-          <button type="button" onClick={Cancel}>Cancel</button>
+          <button type="button" onClick={Cancel}>Close</button>
         </Form>
       </ModalBox>
     </div>
