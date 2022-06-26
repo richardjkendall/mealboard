@@ -19,11 +19,13 @@ class UserModel(db.Model):
   last_name = db.Column(db.String(120), nullable=True)
   join_date = db.Column(db.DateTime(), nullable=True)
   enabled = db.Column(db.Boolean(), nullable=False)
+  default_board_id = db.Column(db.Integer, db.ForeignKey('board.id'), nullable=True)
+  default_board = db.relationship('BoardModel', foreign_keys=[default_board_id])
   families = db.relationship('UserToFamilyModel', back_populates="user")
 
 class UserSchema(ma.Schema):
   #families = fields.Nested(UserToFamilySchema, many=True)
 
   class Meta:
-    fields = ('id', 'username', 'first_name', 'last_name', 'join_date', 'enabled')
+    fields = ('id', 'username', 'first_name', 'last_name', 'join_date', 'enabled', 'default_board_id', 'default_board')
 

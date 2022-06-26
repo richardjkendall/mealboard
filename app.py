@@ -1,5 +1,5 @@
 import logging
-import os
+import os, sys
 from flask import Flask, request, redirect
 from flask_cors import CORS
 from sqlalchemy.exc import OperationalError, ProgrammingError
@@ -13,29 +13,35 @@ from models.user_model import UserModel
 
 from create_tables import build_all_tables
 
+# set logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] (%(threadName)-10s) %(message)s')
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__,
             static_url_path="/",
             static_folder="static")
 CORS(app)
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "data.db")
+if os.environ.get("DB_TYPE") == "sqlite":
+  basedir = os.path.abspath(os.path.dirname(__file__))
+  app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "data.db")
+  app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+elif os.environ.get("DB_TYPE") == "pgre":
+  db_user = os.environ.get("DB_USER")
+  db_password = os.environ.get("DB_PASSWORD")
+  db_host = os.environ.get("DB_HOST")
+  app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{db_user}:{db_password}@{db_host}:5432/mealboard"
+  app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+else:
+  logger.error("Error setting up database connection")
+  sys.exit(1)
 
-db_user = os.environ.get("DB_USER")
-db_password = os.environ.get("DB_PASSWORD")
-db_host = os.environ.get("DB_HOST")
-#app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{db_user}:{db_password}@{db_host}:5432/mealboard"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 ma.init_app(app)
 
 from blueprints.user import user
 from blueprints.family import family
-
-# set logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] (%(threadName)-10s) %(message)s')
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-logger = logging.getLogger(__name__)
 
 # manages route requests for content
 @app.route("/")

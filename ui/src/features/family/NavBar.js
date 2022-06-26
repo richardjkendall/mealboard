@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import moment from "moment";
 import { useSelector, useDispatch } from 'react-redux';
@@ -7,7 +7,9 @@ import AddBoard from '../ui/AddBoard';
 import AddFamily from '../ui/AddFamily';
 import AddUser from '../ui/AddUser';
 import { GetThisMonday } from '../../utils/dates';
+
 import cog from './cog.png';
+import hamburger from './more.png';
 
 import { 
   fetchUser,
@@ -33,7 +35,7 @@ import {
   selectSelectedWeek,
   selectBoard,
   addWeek,
-  switchWeek
+  switchWeek,
 } from '../board/boardSlice';
 
 const NavContainer = styled.div`
@@ -80,6 +82,14 @@ const CogImg = styled.img`
   cursor: pointer;
 `
 
+const HamburgerImg = styled.img`
+  width: 30px;
+  height: 30px;
+  margin: 10px;
+  cursor: pointer;
+  z-index: 6;
+`
+
 const DropDownMenu = styled.div`
   border-top: solid 5px grey;
   position: absolute;
@@ -106,6 +116,26 @@ const DropDownMenu = styled.div`
   }
 `
 
+const SideTray = styled.div`
+  position: absolute;
+  z-index: 5;
+  width: 300px;
+  height: calc(100vh - 55px);
+  top: 0;
+  left: 0;
+  background-color: #efefef;
+  padding-top: 55px;
+  padding-left: 10px;
+  transform: translateX(-310px);
+  transition: transform 1s ease;
+
+  &[data-visible="yes"] {
+    transform: translateX(0);
+    display: block;
+  }
+
+`
+
 export default function NavBar(props) {
   const dispatch = useDispatch();
   const families = useSelector(selectFamilies);
@@ -126,6 +156,15 @@ export default function NavBar(props) {
   const [familyAddEditMode, setFamilyAddEditMode] = useState("add");
   const [userAddEditMode, setUserAddEditMode] = useState("add");
   const [loadPage] = useState(0);
+
+  const [showSideTray, _setShowSideTray] = useState(false);
+  const showSideTrayRef = useRef(showSideTray);
+  const setShowSideTray = data => {
+    showSideTrayRef.current = data;
+    _setShowSideTray(data);
+  }
+
+  const sideBarRef = useRef();
 
   useEffect(() => {
     dispatch(fetchUser());
@@ -166,6 +205,23 @@ export default function NavBar(props) {
     }
   }, [newUser]);
 
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      console.log("outside click", showSideTrayRef.current);
+      if(sideBarRef.current && !sideBarRef.current.contains(e.target)) {
+        if(showSideTrayRef.current) {
+          setShowSideTray(false);
+        }
+      }
+    }
+
+    document.addEventListener("click", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    }
+  }, [sideBarRef]);
+
   const editBoard = () => {
     setShowMenu(false);
     setBoardAddEditMode("edit");
@@ -201,11 +257,6 @@ export default function NavBar(props) {
     setUserAddEditMode("edit");
     setShowAddUser(true);
   }
-
-  /*const startAddUser = () => {
-    setUserAddEditMode("add");
-    setShowAddUser(true);
-  }*/
 
   const closeAddUser = () => {
     setShowAddUser(false);
@@ -262,10 +313,14 @@ export default function NavBar(props) {
   }
 
   const familyOptions = families.map(family => <option key={"family_" + family.id} value={family.id}>{family.family_name}</option>);
-  const boardOptions = families.length > 0 && selectedFam.boards.map(board => <option key={"board_" + board.id} value={board.id}>{board.board_name}</option>);
-  const currentWeek = Object.keys(selectedWeek).length !== 0 && <WeekSelector>
+  const boardOptions = families.length > 0 
+    && selectedFam.boards
+    .filter(board => board.scope === "family" || (board.scope === "private" && board.owning_user_id === user.id))  
+    .map(board => <option key={"board_" + board.id} value={board.id}>{board.board_name}</option>);
+  const currentWeek = Object.keys(selectedWeek).length !== 0 
+  && <WeekSelector>
     <button onClick={gotoPrevWeek}>-</button>
-    <p>Week {moment(selectedWeek.week_start_date).format("w YYYY")}</p>
+    <p>Week {moment(selectedWeek.week_start_date).format("w (DD MMM YYYY)")}</p>
     <button onClick={gotoNextWeek}>+</button>
   </WeekSelector>
 
@@ -302,15 +357,15 @@ export default function NavBar(props) {
         close={closeAddUser} 
         mode={userAddEditMode}
       />
-      <NavContainer>
-        <p><b>Meal</b>Board</p>
-        <NavDivider/>
+      <SideTray
+        data-visible={showSideTray ? "yes" : "no"}
+        ref={sideBarRef}
+      >
         <p>Family:</p>
         <NavSelect value={selectedFam.id} onChange={event => switchFamily(event.target.value)}>
           {familyOptions}
         </NavSelect>
         <button onClick={startAddFamily}>Create Family Group</button>
-        <NavDivider/>
         <p>Board:</p>
         {selectedFam !== -1 &&
         <NavSelect value={selected_Board.id} onChange={event => switchBoard(event.target.value)}>
@@ -318,10 +373,23 @@ export default function NavBar(props) {
         </NavSelect>
         }
         <button onClick={startAddBoard}>Add Board</button>
+      </SideTray>
+      <NavContainer>
+        <HamburgerImg src={hamburger} onClick={(e) => {
+          setShowSideTray(!showSideTray);
+          e.stopPropagation();
+        }} />
+        <p style={{zIndex: "6"}}><b>Meal</b>Board</p>
         <NavDivider/>
         {currentWeek}
         <NavDivider/>
         <button onClick={gotoThisWeek}>Go to Current Week</button>
+        <NavDivider/>
+        <button>Save as a template week</button>
+        <NavDivider/>
+        <button>Copy from a template</button>
+        <NavDivider/>
+        <button>Make this my default board</button>        
         <NavRightAlign>
           <CogImg src={cog} onClick={() => {setShowMenu(!showMenu)}}/>
         </NavRightAlign>

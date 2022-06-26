@@ -27,8 +27,16 @@ export default function ModalBox(props) {
     props.close(reason);
   }
 
+  const HandleClick = (e) => {
+    if(props.allowBackgroundClose) {
+      CloseBox("cancel");
+    } else {
+      e.stopPropagation();
+    }
+  }
+
   return (
-    props.show && <Blockout onClick={props.allowBackgroundClose && CloseBox.bind(null, "cancel")}>
+    props.show && <Blockout onClick={HandleClick}>
       <CentreBox>
         {props.children}
       </CentreBox>

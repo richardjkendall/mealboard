@@ -18,7 +18,7 @@ class BoardModel(db.Model):
   id = db.Column(db.Integer, index=True, primary_key=True)
   board_name = db.Column(db.String(120), nullable=False)
   owning_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=False)
-  owning_user = db.relationship('UserModel', backref=db.backref('owning_user', lazy=True))
+  owning_user = db.relationship('UserModel', backref=db.backref('owning_user', lazy=True), foreign_keys=[owning_user_id])
   scope = db.Column(db.Enum(BoardScopeEnum), nullable=False)
   family_id = db.Column(db.Integer, db.ForeignKey('family.id'), index=True, nullable=False)
   family = db.relationship('FamilyModel', backref=db.backref('boards', lazy=True))

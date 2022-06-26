@@ -45,10 +45,20 @@ const WeekHeader = styled(Cell)`
   font-weight: bold;
   text-align: center;
   border-left: solid 1px black;
+
+  padding: 5px;
+
+  p {
+    margin: 0px;
+  }
+
+  p:not(:first-child) {
+    font-size: 8pt;
+  }
 `
 
 const MealRow = styled(Row)`
-  height: 200px;
+  height: 180px;
   border-top: solid 1px black;
 `
 
@@ -355,7 +365,7 @@ export default function Board(props) {
     }
   }
 
-  const DayHeaders = days.map(day => <WeekHeader key={"week_" + day}><p>{day}</p></WeekHeader>);
+  const DayHeaders = days.map((day, i) => <WeekHeader key={"week_" + day}><p>{day}</p><p>{moment(selectedWeek.week_start_date).add(i, 'days').format("DD/MM")}</p></WeekHeader>);
   const MealRows = mealSlots.map(meal => {
     const mealDays = days.map(day => {
       var dayCount = days.findIndex(dayName => dayName === day) + 1;
