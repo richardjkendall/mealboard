@@ -28,5 +28,5 @@ echo "UPDATING: path to include img"
 export PATH=$PATH:~/.local/bin/img/
 echo "DONE: path updated"
 
-img build -t $REGISTRY/mealboard .
+USER=go img build -t $REGISTRY/mealboard .
 #USER=go img push $REGISTRY/mealboard
