@@ -223,7 +223,7 @@ export default function Board(props) {
     if(typeof(selectedFam.id) !== "undefined" && typeof(selectedBoard.id) !== "undefined" && typeof(selectedWeek.id) !== "undefined") {
       console.log("fetching week family", selectedFam.id, "board", selectedBoard.id, "week", selectedWeek.id);
       dispatch(fetchWeek({
-        family_id: selectedFam.id,
+        family_id: selectedBoard.family_id,
         board_id: selectedBoard.id,
         week_id: selectedWeek.id
       }));
@@ -258,7 +258,7 @@ export default function Board(props) {
         }
       }
     }
-  }, [selectedBoard.id, selectedFam.id, selectedWeek.id, /*selectedFam.family_name, selectedFam.boards,*/ dispatch]);
+  }, [selectedBoard.id, selectedFam.id, selectedWeek.id, selectedFam.family_name, selectedFam.boards, dispatch]);
 
   const startAddMeal = () => {
     setShowAddEditMeal(true);

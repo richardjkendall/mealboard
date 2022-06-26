@@ -129,7 +129,7 @@ const SideTray = styled.div`
   padding-top: 55px;
   padding-left: 10px;
   transform: translateX(-310px);
-  transition: transform 1s ease;
+  transition: transform 0.5s ease;
 
   &[data-visible="yes"] {
     transform: translateX(0);
@@ -219,7 +219,7 @@ export default function NavBar(props) {
 
   useEffect(() => {
     console.log("dispatching fetchboard, family", selectedFam.id, "board", selected_Board.id);
-    
+
     if(typeof(selectedFam.id) !== "undefined" && typeof(selected_Board.id) !== "undefined") {
       dispatch(fetchBoard({
         family_id: selectedFam.id,
@@ -363,17 +363,11 @@ export default function NavBar(props) {
   }
 
   const switchBoard = (id) => {
-    //console.log("boards", selectedFam.boards);
-    //console.log("board filter", selectedFam.boards.filter(board => board.id === parseInt(id)));
-    //selectedFam.boards.forEach(board => {
-    //  console.log(board.id, " === ", id, " ", board.id === id);
-    //});
     var board = selectedFam.boards.filter(board => board.id === parseInt(id))[0];
     dispatch(setBoard(board));
   }
 
   const setUserDefaultBoard = () => {
-    //console.log("setting default board", selected_Board);
     dispatch(setDefaultBoard({
       default_board_id: selected_Board.id
     }));
