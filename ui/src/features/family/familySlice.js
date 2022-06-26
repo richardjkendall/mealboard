@@ -138,6 +138,10 @@ const familySlice = createSlice({
     setBoard: (state, action) => {
       state.selectedBoard = action.payload;
     },
+    setBothFamilyAndBoard: (state, action) => {
+      state.selectedFamily = action.payload.family;
+      state.selectedBoard = action.payload.board;
+    },
     clearError: state => {
       state.error = "";
     }
@@ -347,7 +351,7 @@ const familySlice = createSlice({
   }
 })
 
-export const { setFamily, setBoard, clearError } = familySlice.actions;
+export const { setFamily, setBoard, setBothFamilyAndBoard, clearError } = familySlice.actions;
 
 export const selectFamilies = state => state.family.families;
 export const selectedFamily = state => state.family.selectedFamily;

@@ -69,6 +69,17 @@ export const editUser = createAsyncThunk(
   }
 )
 
+export const setDefaultBoard = createAsyncThunk(
+  'user/setDefaultBoard',
+  async (item, thunkAPI) => {
+    return axios.patch(API_BASE() + `user/`, {
+      default_board_id: item.default_board_id
+    })
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
+  }
+)
+
 export const createUser = createAsyncThunk(
   'user/createUser',
   async (item, thunkAPI) => {
@@ -114,6 +125,20 @@ export const userSlice = createSlice({
       state.error = action.payload?.message || action.error.message;
     },
 
+    [setDefaultBoard.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      state.user.default_board_id = action.payload.default_board_id;
+      state.user.default_board = action.payload.default_board;
+    },
+    [setDefaultBoard.pending]: state => {
+      state.loading = "yes";
+    },
+    [setDefaultBoard.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.payload?.message || action.error.message;
+    },
+
     [editUser.fulfilled]: (state, action) => {
       state.loading = "idle";
       state.error = "";
@@ -130,6 +155,7 @@ export const userSlice = createSlice({
       state.loading = "idle";
       state.error = action.payload?.message || action.error.message;
     },
+
     [fetchUser.fulfilled]: (state, action) => {
       state.loading = "idle";
       state.error = "";

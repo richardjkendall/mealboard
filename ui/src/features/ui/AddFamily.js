@@ -11,6 +11,10 @@ import {
   addOtherUser
 } from '../family/familySlice';
 
+import {
+  clearBoard,
+} from '../board/boardSlice';
+
 import { 
   checkUserExists, 
   inviteNewUser
@@ -144,6 +148,7 @@ export default function AddBoard(props) {
         props.close("edited");
       } else {
         // this is the add scenario
+        dispatch(clearBoard());
         dispatch(addFamily({
           family_name: familyName
         }));

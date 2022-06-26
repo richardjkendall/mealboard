@@ -1,8 +1,7 @@
-#from marshmallow import fields
-#from marshmallow_enum import EnumField
+from marshmallow import fields
 
-#from models.user_to_family import UserToFamilySchema
 from models.shared import db, ma
+from models.board_model import BoardSchema
 
 import enum
 
@@ -24,7 +23,7 @@ class UserModel(db.Model):
   families = db.relationship('UserToFamilyModel', back_populates="user")
 
 class UserSchema(ma.Schema):
-  #families = fields.Nested(UserToFamilySchema, many=True)
+  default_board = fields.Nested(BoardSchema(exclude=["weeks"]), many=False)
 
   class Meta:
     fields = ('id', 'username', 'first_name', 'last_name', 'join_date', 'enabled', 'default_board_id', 'default_board')

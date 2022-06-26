@@ -13,6 +13,7 @@ import hamburger from './more.png';
 
 import { 
   fetchUser,
+  setDefaultBoard,
   selectNewUser,
   selectGotUser,
   selectUser
@@ -25,6 +26,7 @@ import {
   selectedBoard,
   setFamily,
   setBoard,
+  setBothFamilyAndBoard,
   selectGotFamilies,
   addFamily
 } from './familySlice';
@@ -155,6 +157,7 @@ export default function NavBar(props) {
   const [boardAddEditMode, setBoardAddEditMode] = useState("add");
   const [familyAddEditMode, setFamilyAddEditMode] = useState("add");
   const [userAddEditMode, setUserAddEditMode] = useState("add");
+  const [firstLoadFlag, setFirstLoadFlag] = useState(true);
   const [loadPage] = useState(0);
 
   const [showSideTray, _setShowSideTray] = useState(false);
@@ -183,11 +186,40 @@ export default function NavBar(props) {
         dispatch(addFamily({
           family_name: `${user.first_name}'s Family`
         }));
+      } else {
+        // need to check if default family and board exists, if so select it
+        if(user.default_board !== null) {
+          console.log("got families and default board is set");
+          const family = families.filter(f => f.id === user.default_board.family_id);
+          if(family.length > 0 && firstLoadFlag) {
+            console.log("default board family", family[0]);
+            const b = family[0].boards.filter(b => b.id === user.default_board.id);
+            if(b.length > 0) {
+              console.log("default board", b[0]);
+              if(b[0].id !== selected_Board.id) {
+                if(family[0].id !== selectedFam.id) {
+                  console.log("need to change family & board");
+                  dispatch(clearBoard());
+                  dispatch(setBothFamilyAndBoard({
+                    family: family[0],
+                    board: b[0]
+                  }));
+                } else {
+                  console.log("need to change board only");
+                  dispatch(setBoard(b[0]))
+                }
+              }
+            }
+          }
+        }
+        setFirstLoadFlag(false);
       }
     }
   }, [gotFamilies, families, user, dispatch])
 
   useEffect(() => {
+    console.log("dispatching fetchboard, family", selectedFam.id, "board", selected_Board.id);
+    
     if(typeof(selectedFam.id) !== "undefined" && typeof(selected_Board.id) !== "undefined") {
       dispatch(fetchBoard({
         family_id: selectedFam.id,
@@ -331,13 +363,20 @@ export default function NavBar(props) {
   }
 
   const switchBoard = (id) => {
-    console.log("boards", selectedFam.boards);
-    console.log("board filter", selectedFam.boards.filter(board => board.id === parseInt(id)));
-    selectedFam.boards.forEach(board => {
-      console.log(board.id, " === ", id, " ", board.id === id);
-    });
+    //console.log("boards", selectedFam.boards);
+    //console.log("board filter", selectedFam.boards.filter(board => board.id === parseInt(id)));
+    //selectedFam.boards.forEach(board => {
+    //  console.log(board.id, " === ", id, " ", board.id === id);
+    //});
     var board = selectedFam.boards.filter(board => board.id === parseInt(id))[0];
     dispatch(setBoard(board));
+  }
+
+  const setUserDefaultBoard = () => {
+    //console.log("setting default board", selected_Board);
+    dispatch(setDefaultBoard({
+      default_board_id: selected_Board.id
+    }));
   }
 
   return (
@@ -389,7 +428,7 @@ export default function NavBar(props) {
         <NavDivider/>
         <button>Copy from a template</button>
         <NavDivider/>
-        <button>Make this my default board</button>        
+        <button onClick={setUserDefaultBoard}>Make this my default board</button>        
         <NavRightAlign>
           <CogImg src={cog} onClick={() => {setShowMenu(!showMenu)}}/>
         </NavRightAlign>

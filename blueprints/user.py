@@ -49,6 +49,8 @@ def edit_user(username, groups, user_id):
     setattr(user, "first_name", request.json["first_name"])
   if "last_name" in request.json:
     setattr(user, "last_name", request.json["last_name"])
+  if "default_board_id" in request.json:
+    setattr(user, "default_board_id", request.json["default_board_id"])
   db.session.commit()
   return user_schema.jsonify(user)
 
