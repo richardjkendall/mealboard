@@ -29,5 +29,7 @@ export PATH=$PATH:~/.local/bin/img/
 echo "DONE: path updated"
 
 img build -t $REGISTRY/mealboard:$GO_PIPELINE_LABEL .
-img tag $REGISTRY/mealboard:$GO_PIPELINE_LABEL $REGISTRY/mealboard:latest
-img push $REGISTRY/mealboard
+img tag $REGISTRY/mealboard:$GO_PIPELINE_LABEL 
+img push $REGISTRY/mealboard:$GO_PIPELINE_LABEL
+img tag $REGISTRY/mealboard:latest
+img push $REGISTRY/mealboard:latest
