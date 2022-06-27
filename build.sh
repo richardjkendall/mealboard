@@ -28,5 +28,6 @@ echo "UPDATING: path to include img"
 export PATH=$PATH:~/.local/bin/img/
 echo "DONE: path updated"
 
-img build -t $REGISTRY/mealboard .
-#img push $REGISTRY/mealboard
+img build -t $REGISTRY/mealboard:$GO_PIPELINE_LABEL .
+img tag $REGISTRY/mealboard:$GO_PIPELINE_LABEL $REGISTRY/mealboard:latest
+img push $REGISTRY/mealboard
