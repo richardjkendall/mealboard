@@ -10,7 +10,7 @@ else
 fi
 
 mv img-linux-amd64 img
-check_output=`echo "cc9bf08794353ef57b400d32cd1065765253166b0a09fba360d927cfbd158088 img" | sha256sum --check`
+check_output=`echo "cc9bf08794353ef57b400d32cd1065765253166b0a09fba360d927cfbd158088  img" | sha256sum -c`
 okay_string="img: OK"
 
 if [ "$check_output" == "$okay_string" ]; then

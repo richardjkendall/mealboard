@@ -6,7 +6,7 @@ ADD ui ui
 RUN cd ui; yarn install
 RUN cd ui; yarn build
 
-FROM ubuntu
+FROM ubuntu:focal
 # install apache and modules we need
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive \
