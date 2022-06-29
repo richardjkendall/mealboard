@@ -9,3 +9,6 @@ from models.week_model import WeekModel, WeekSchema
 
 def build_all_tables(db, app):
   db.create_all(app=app)
+
+def drop_all_tables(db, app):
+  db.drop_all(app=app)

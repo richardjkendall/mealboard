@@ -403,9 +403,9 @@ export default function NavBar(props) {
         {selectedFam !== -1 &&
         <NavSelect value={selected_Board.id} onChange={event => switchBoard(event.target.value)}>
           {boardOptions}
-        </NavSelect>
-        }
+        </NavSelect>}
         <button onClick={startAddBoard}>Add Board</button>
+        <button onClick={setUserDefaultBoard}>Make this my default board</button> 
       </SideTray>
       <NavContainer>
         <HamburgerImg src={hamburger} onClick={(e) => {
@@ -416,13 +416,7 @@ export default function NavBar(props) {
         <NavDivider/>
         {currentWeek}
         <NavDivider/>
-        <button onClick={gotoThisWeek}>Go to Current Week</button>
-        <NavDivider/>
-        <button>Save as a template week</button>
-        <NavDivider/>
-        <button>Copy from a template</button>
-        <NavDivider/>
-        <button onClick={setUserDefaultBoard}>Make this my default board</button>        
+        <button onClick={gotoThisWeek}>Go to Current Week</button>               
         <NavRightAlign>
           <CogImg src={cog} onClick={() => {setShowMenu(!showMenu)}}/>
         </NavRightAlign>
