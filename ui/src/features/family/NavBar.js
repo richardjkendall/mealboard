@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import AddBoard from '../ui/AddBoard';
 import AddFamily from '../ui/AddFamily';
 import AddUser from '../ui/AddUser';
-import { GetThisMonday } from '../../utils/dates';
+import { GetRelativeWeek, GetThisMonday } from '../../utils/dates';
 
 import cog from './cog.png';
 import hamburger from './more.png';
@@ -38,7 +38,11 @@ import {
   selectBoard,
   addWeek,
   switchWeek,
+  copyFromWeek,
+  addWeekAndCopy
 } from '../board/boardSlice';
+
+import { addError } from '../ui/errorSlice';
 
 const NavContainer = styled.div`
   background-color: #efefef;
@@ -60,6 +64,8 @@ const NavDivider = styled.div`
 const NavSelect = styled.select`
   margin-left: 5px;
   margin-right: 5px;
+  max-width: 190px;
+  width: 190px;
 `
 
 const WeekSelector = styled.div`
@@ -134,6 +140,11 @@ const SideTray = styled.div`
   &[data-visible="yes"] {
     transform: translateX(0);
     display: block;
+  }
+
+  button {
+    margin-left: 5px;
+    margin-right: 5px;
   }
 
 `
@@ -294,6 +305,25 @@ export default function NavBar(props) {
     setShowAddUser(false);
   }
 
+  const copyFromPrevWeek = () => {
+    // find out if the prev week exists
+    var startOfNextWeek = moment(selectedWeek.week_start_date).subtract(7, 'days').format("YYYY-MM-DD");
+    console.log("copyFromPrevWeek: start of prev week is", startOfNextWeek);
+    var prevWeek = board.weeks.filter(week => week.week_start_date.startsWith(startOfNextWeek));
+    if(prevWeek.length === 0) {
+      console.log("no prev week found, nothing to copy");
+      dispatch(addError("There is no previous week to copy from."));
+    } else {
+      console.log("prev week exists, copying");
+      dispatch(copyFromWeek({
+        family_id: selectedFam.id,
+        board_id: board.id,
+        week_id: selectedWeek.id,
+        from_week_id: prevWeek[0].id
+      }))
+    }
+  }
+
   const gotoPrevWeek = () => {
     // find out if the prev week exists
     var startOfNextWeek = moment(selectedWeek.week_start_date).subtract(7, 'days').format("YYYY-MM-DD");
@@ -301,9 +331,35 @@ export default function NavBar(props) {
     var prevWeek = board.weeks.filter(week => week.week_start_date.startsWith(startOfNextWeek));
     if(prevWeek.length === 0) {
       console.log("no prev week found");
+      dispatch(addError("There is no previous week."));
     } else {
       console.log("prev week exists");
       dispatch(switchWeek(prevWeek[0]));
+    }
+  }
+
+  const copyToNextWeek = () => {
+    // find if next week exists already
+    var startOfNextWeek = moment(selectedWeek.week_start_date).add(7, 'days').format("YYYY-MM-DD");
+    console.log("start of next week is", startOfNextWeek);
+    var nextWeek = board.weeks.filter(week => week.week_start_date.startsWith(startOfNextWeek));
+    if(nextWeek.length === 0) {
+      console.log("no next week found, need to create one and then copy");
+      dispatch(addWeekAndCopy({
+        family_id: selectedFam.id,
+        board_id: board.id,
+        week_start_date: startOfNextWeek + "T00:00:00",
+        from_week_id: selectedWeek.id
+      }));
+    } else {
+      console.log("next week already exists, copying");
+      dispatch(switchWeek(nextWeek[0]));
+      dispatch(copyFromWeek({
+        family_id: selectedFam.id,
+        board_id: board.id,
+        week_id: nextWeek[0].id,
+        from_week_id: selectedWeek.id
+      }))
     }
   }
 
@@ -351,9 +407,9 @@ export default function NavBar(props) {
     .map(board => <option key={"board_" + board.id} value={board.id}>{board.board_name}</option>);
   const currentWeek = Object.keys(selectedWeek).length !== 0 
   && <WeekSelector>
-    <button onClick={gotoPrevWeek}>-</button>
-    <p>Week {moment(selectedWeek.week_start_date).format("w (DD MMM YYYY)")}</p>
-    <button onClick={gotoNextWeek}>+</button>
+    <button onClick={gotoPrevWeek}>&lt;</button>
+    <p>{GetRelativeWeek(selectedWeek.week_start_date)}</p>
+    <button onClick={gotoNextWeek}>&gt;</button>
   </WeekSelector>
 
   const switchFamily = (id) => {
@@ -398,14 +454,14 @@ export default function NavBar(props) {
         <NavSelect value={selectedFam.id} onChange={event => switchFamily(event.target.value)}>
           {familyOptions}
         </NavSelect>
-        <button onClick={startAddFamily}>Create Family Group</button>
+        <button onClick={startAddFamily}>Add Family</button>
         <p>Board:</p>
         {selectedFam !== -1 &&
         <NavSelect value={selected_Board.id} onChange={event => switchBoard(event.target.value)}>
           {boardOptions}
         </NavSelect>}
         <button onClick={startAddBoard}>Add Board</button>
-        <button onClick={setUserDefaultBoard}>Make this my default board</button> 
+        <button style={{marginTop: "10px"}} onClick={setUserDefaultBoard}>Make this my default board</button> 
       </SideTray>
       <NavContainer>
         <HamburgerImg src={hamburger} onClick={(e) => {
@@ -416,7 +472,11 @@ export default function NavBar(props) {
         <NavDivider/>
         {currentWeek}
         <NavDivider/>
-        <button onClick={gotoThisWeek}>Go to Current Week</button>               
+        <button onClick={gotoThisWeek}>Go to today</button>
+        <NavDivider/>
+        <button onClick={copyToNextWeek}>Copy to next week</button>
+        <NavDivider/>
+        <button onClick={copyFromPrevWeek}>Copy from previous week</button>
         <NavRightAlign>
           <CogImg src={cog} onClick={() => {setShowMenu(!showMenu)}}/>
         </NavRightAlign>

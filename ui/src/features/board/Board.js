@@ -55,6 +55,12 @@ const WeekHeader = styled(Cell)`
   p:not(:first-child) {
     font-size: 8pt;
   }
+
+  &[data-today="yes"] {
+    p {
+      color: red;
+    }
+  }
 `
 
 const MealRow = styled(Row)`
@@ -70,6 +76,7 @@ const MealCell = styled(Cell)`
   justify-content: flex-start;
   align-items: flex-start;
   align-content: flex-start;
+  overflow: hidden;
 
   &[data-selectedslot="yes"] {
     background-color: #ADD8E6;
@@ -365,7 +372,7 @@ export default function Board(props) {
     }
   }
 
-  const DayHeaders = days.map((day, i) => <WeekHeader key={"week_" + day}><p>{day}</p><p>{moment(selectedWeek.week_start_date).add(i, 'days').format("DD/MM")}</p></WeekHeader>);
+  const DayHeaders = days.map((day, i) => <WeekHeader data-today={moment(selectedWeek.week_start_date).add(i, 'days').format("DD/MM") === moment().format("DD/MM") ? "yes" : "no"} key={"week_" + day}><p>{day}</p><p>{moment(selectedWeek.week_start_date).add(i, 'days').format("DD/MM")}</p></WeekHeader>);
   const MealRows = mealSlots.map(meal => {
     const mealDays = days.map(day => {
       var dayCount = days.findIndex(dayName => dayName === day) + 1;

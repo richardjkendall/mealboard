@@ -9,12 +9,14 @@ export const errorSlice = createSlice({
   },
   reducers: {
     addError: (state, action) => {
-      state.errors.push({
-        created: moment().toISOString(),
-        id: uuidv4(),
-        error_text: action.payload,
-        // can we add the delete timeout here?
-      });
+      state.errors = [
+        {
+          created: moment().toISOString(),
+          id: uuidv4(),
+          error_text: action.payload,
+        },
+        ...state.errors
+      ]
     },
     clearOld: state => {
       var dn = moment();

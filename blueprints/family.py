@@ -3,6 +3,7 @@ from sqlalchemy import or_, and_
 from flask import Blueprint, request
 from flask.json import jsonify
 import dateutil.parser
+import datetime
 
 from models.family_model import FamilyModel, FamilySchema
 from models.user_to_family import UserToFamilyModel, UserToFamilySchema, UserRoleEnum
@@ -320,6 +321,35 @@ def change_week(username, groups, user_id, family_id, board_id, week_id):
   if "week_special_name" in request.json:
     setattr(week, "week_special_name", request.json["week_special_name"])
   db.session.commit()
+  return week_schema.jsonify(week)
+
+@family.route("/<int:family_id>/board/<int:board_id>/week/<int:week_id>", methods=["POST"])
+@error_handler
+@secured
+@valid_user
+@user_can_edit_family
+@user_can_see_board
+@must_be_json
+def copy_week(username, groups, user_id, family_id, board_id, week_id):
+  week = WeekModel.query.filter(WeekModel.id == week_id, WeekModel.board_id == board_id).first()
+  if not week:
+    raise ObjectNotFoundException("Week not found")
+  if "from_week" not in request.json:
+    raise BadRequestException("No from_week found in request")
+  from_week = WeekModel.query.filter(WeekModel.id == request.json["from_week"], WeekModel.board_id == board_id).first()
+  if not from_week:
+    raise ObjectNotFoundException("From week now found")
+  for meal in from_week.meals:
+    new_week_to_meal = WeekToMealModel(
+      week_id = week_id,
+      meal_id = meal.meal_id,
+      meal_slot = meal.meal_slot,
+      day = week.week_start_date + datetime.timedelta(days = meal.day.weekday())
+    )
+    db.session.add(new_week_to_meal)
+  db.session.commit()
+  # get week again
+  week = WeekModel.query.filter(WeekModel.id == week_id, WeekModel.board_id == board_id).first()
   return week_schema.jsonify(week)
 
 @family.route("/<int:family_id>/board/<int:board_id>/week", methods=["PUT"])

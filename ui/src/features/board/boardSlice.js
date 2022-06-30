@@ -55,6 +55,34 @@ export const removeMealFromWeek = createAsyncThunk(
   }
 )
 
+export const copyFromWeek = createAsyncThunk(
+  'board/copyFromWeek',
+  async (item, thunkAPI) => {
+    return axios.post(API_BASE() + `family/${item.family_id}/board/${item.board_id}/week/${item.week_id}`, {
+      from_week: item.from_week_id,
+    })
+    .then(response => response.data)
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
+  }
+)
+
+export const addWeekAndCopy = createAsyncThunk(
+  'board/addWeekAndCopy',
+  async (item, thunkAPI) => {
+    return axios.put(API_BASE() + `family/${item.family_id}/board/${item.board_id}/week`, {
+      week_start_date: item.week_start_date,
+    })
+    .then(response => {
+      console.log(`week created with id ${response.data.id}`);
+      return axios.post(API_BASE() + `family/${item.family_id}/board/${item.board_id}/week/${response.data.id}`, {
+        from_week: item.from_week_id,
+      })
+      .then(response => response.data)
+      .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
+    })
+    .catch(error => thunkAPI.rejectWithValue(error?.response?.data || error))
+  }
+)
 
 export const boardSlice = createSlice({
   name: 'board',
@@ -98,6 +126,35 @@ export const boardSlice = createSlice({
     }
   },
   extraReducers: {
+    [addWeekAndCopy.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      // need to add the week to the board weeks and select the week
+      state.board.weeks.push(action.payload);
+      state.selectedWeek = action.payload;
+    },
+    [addWeekAndCopy.pending]: state => {
+      state.loading = "yes";
+    },
+    [addWeekAndCopy.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.payload?.message || action.error.message;
+    },
+
+    [copyFromWeek.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      state.week.meals = action.payload.meals;
+      state.selectedWeek = action.payload;
+    },
+    [copyFromWeek.pending]: state => {
+      state.loading = "yes";
+    },
+    [copyFromWeek.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.payload?.message || action.error.message;
+    },
+
     [removeMealFromWeek.fulfilled]: (state, action) => {
       state.loading = "idle";
       state.error = "";
@@ -125,6 +182,7 @@ export const boardSlice = createSlice({
       state.loading = "idle";
       state.error = action.payload?.message || action.error.message;
     },
+
     [addMealToWeek.fulfilled]: (state, action) => {
       state.loading = "idle";
       state.error = "";
@@ -163,7 +221,7 @@ export const boardSlice = createSlice({
         var dn = moment().subtract(currentDay, 'days');
         var diffa = Math.abs(da.diff(dn, 'days'));
         var diffb = Math.abs(db.diff(dn, 'days'));
-        console.log("diffa", diffa, "diffb", diffb);
+        //console.log("diffa", diffa, "diffb", diffb);
         if(diffa === diffb) {
           return 0;
         } else {
