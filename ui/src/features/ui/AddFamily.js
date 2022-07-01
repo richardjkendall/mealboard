@@ -47,6 +47,10 @@ const UserRoleCell = styled.div`
   padding: 2px;
   padding-left: 10px;
   padding-right: 10px;
+
+  select {
+    border: solid 1px #cccccc;
+  }
 `
 
 const UserDeleteCell = styled.div`
@@ -210,7 +214,7 @@ export default function AddBoard(props) {
             <input type="text" value={familyName} onChange={(e) => {setFamilyName(e.target.value)}} />
           </Block>
           {props.mode === "edit" && <div>
-            <p>Other Users</p>
+            <p style={{marginTop: "10px", marginBottom: "10px"}}>Other Users</p>
             <UserWidget 
               users={family.other_users} 
               changeRole={ChangeRole}

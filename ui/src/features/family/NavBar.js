@@ -45,20 +45,41 @@ import {
 import { addError } from '../ui/errorSlice';
 
 const NavContainer = styled.div`
-  background-color: #efefef;
+  background-color: #f1f1f1;
   margin-bottom: 5px;
   padding-left: 5px;
   width: calc(100vw - 5px);
   height: 50px;
   display: flex;
   align-items: center;
+
+  button {
+    height: 50px;
+    border: none;
+    cursor: pointer;
+    font-size: 12pt;
+  }
+
+  button:hover {
+    background-color: #ccc;
+  }
+
+  button:active {
+    padding-left: 7px;
+    padding-top: 2px;
+    padding-bottom: 0px;
+    padding-right: 5px;
+    background-color: #4CAF50;
+    color: #ffffff;
+  }
+
+  font-size: 12pt;
 `
 
 const NavDivider = styled.div`
   margin-left: 5px;
   margin-right: 5px;
   height: 50px;
-  border-left: solid 1px black;
 `
 
 const NavSelect = styled.select`
@@ -131,7 +152,7 @@ const SideTray = styled.div`
   height: calc(100vh - 55px);
   top: 0;
   left: 0;
-  background-color: #efefef;
+  background-color: #f1f1f1;
   padding-top: 55px;
   padding-left: 10px;
   transform: translateX(-310px);

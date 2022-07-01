@@ -76,7 +76,7 @@ const MealCell = styled(Cell)`
   justify-content: flex-start;
   align-items: flex-start;
   align-content: flex-start;
-  overflow: hidden;
+  overflow-y: auto;
 
   &[data-selectedslot="yes"] {
     background-color: #ADD8E6;
@@ -103,14 +103,14 @@ const MealsTray = styled.div`
 
 const MealsTrayHeader = styled.div`
   width: calc(100% - 15px);
-  background-color: #efefef;
-  border-radius: 5px;
+  background-color: #f1f1f1;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
   justify-content: space-between;
   align-items: baseline;
   margin: 5px;
+  margin-bottom: 0px;
   padding-left: 5px;
   align-items: center;
 `
@@ -124,26 +124,30 @@ const HeaderCellSmall = styled.div`
     margin-top: 5px;
     margin-bottom: 5px;
     margin-left: 5px;
+    margin-right: 5px;
+  }
+
+  button:not(:nth-of-type(1)) {
+    margin-left: 5px;
   }
 `
 
 const HeaderCellGrow = styled.div`
   flex: 2 1 auto;
   text-align: right;
-
 `
 
 const SearchLabel = styled.label`
   display: inline-block;
-  text-align: left;
-  padding-right: 20px;
+  padding-right: 5px;
 `
 
 const MealsList = styled.div`
   display: flex;
-  width: 100%;
+  width: calc(100% - 10px);
   flex-direction: row;
   flex-wrap: wrap;
+  padding: 5px;
 `
 
 const Pill = styled.div`

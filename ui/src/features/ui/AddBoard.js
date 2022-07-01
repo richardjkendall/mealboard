@@ -9,7 +9,7 @@ import {
 } from '../family/familySlice';
 
 import ModalBox from './ModalBox';
-import { Form, Block } from './FormWidgets';
+import { Form, Block, Checkbox } from './FormWidgets';
 
 export default function AddBoard(props) {
   const dispatch = useDispatch();
@@ -68,7 +68,7 @@ export default function AddBoard(props) {
           </Block>
           <Block>
             <label>Board is private?</label>
-            <input type="checkbox" checked={privateBoard} onChange={(e) => {setPrivateBoard(e.target.checked)}} />
+            <Checkbox checked={privateBoard} onChange={(e) => {setPrivateBoard(e.target.checked)}} />
           </Block>
           {formError && <p ptype="error">{formError}</p>}
           <button type="button" onClick={Submit}>{props.mode === "add" ? "Add" : "Edit"}</button>
