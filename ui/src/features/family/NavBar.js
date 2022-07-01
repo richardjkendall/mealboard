@@ -69,7 +69,7 @@ const NavContainer = styled.div`
     padding-top: 2px;
     padding-bottom: 0px;
     padding-right: 5px;
-    background-color: #4CAF50;
+    background-color: #2196f3;
     color: #ffffff;
   }
 
@@ -120,13 +120,13 @@ const HamburgerImg = styled.img`
 `
 
 const DropDownMenu = styled.div`
-  border-top: solid 5px grey;
+  border-top: solid 5px #cccccc;
   position: absolute;
   top: 50px;
   right: 0px;
   width: 200px;
   display: ${props => props.show ? "block" : "none"};
-  background-color: #efefef;
+  background-color: #f1f1f1;
 
   ul {
     list-style-type: none;
@@ -140,8 +140,8 @@ const DropDownMenu = styled.div`
   }
 
   li:hover {
-    background-color: white;
-    border-left: solid 1px black;
+    background-color: #2196f3;
+    color: #ffffff;
   }
 `
 
@@ -164,8 +164,27 @@ const SideTray = styled.div`
   }
 
   button {
+    color: #ffffff;
+    background-color: #2196f3;
+    border: none;
+    cursor: pointer;
     margin-left: 5px;
     margin-right: 5px;
+  }
+
+  button:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 2px 2px #cccccc;
+    background-color: #0d8bf2;
+  }
+
+  button:active {
+    transform: translate(1px, 1px);
+    box-shadow: none;
+  }
+
+  select {
+    border: solid 1px #cccccc;
   }
 
 `

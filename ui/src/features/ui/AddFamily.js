@@ -20,12 +20,13 @@ import {
   inviteNewUser
 } from '../user/userSlice';
 
+import { addError } from './errorSlice';
+
 import ModalBox from './ModalBox';
 import { Form, Block } from './FormWidgets';
 
 import plusimg from './plus.png';
 import crossimg from './cross.png';
-
 
 const UserTable = styled.div`
   display: flex;
@@ -35,6 +36,10 @@ const UserTable = styled.div`
 const UserRow = styled.div`
   display: flex;
   flex-direction: row;
+
+  &:not(:last-of-type) {
+    border-bottom: 0.5px solid #cccccc;
+  }
 `
 
 const UserNameCell = styled.div`
@@ -45,11 +50,20 @@ const UserNameCell = styled.div`
 const UserRoleCell = styled.div`
   flex: 0 1 auto;
   padding: 2px;
-  padding-left: 10px;
-  padding-right: 10px;
+  
 
   select {
     border: solid 1px #cccccc;
+    margin-right: 8px;
+  }
+
+  input[type="text"] {
+    border: solid 1px #cccccc;
+    margin: 0px;
+    margin-right: 8px;
+
+    padding: 2px;
+    padding-left: 4px;
   }
 `
 
@@ -63,7 +77,7 @@ const Plus = styled.img`
   height: 20px;
   opacity: 0.5;
   cursor: pointer;
-  margin-left: 10px;
+  vertical-align: middle;
 
   &:hover {
     opacity: 1;
@@ -86,8 +100,12 @@ const UserWidget = (props) => {
   const [userName, setUserName] = useState("");
 
   const AddOtherUser = () => {
-    props.add(userName);
-    setUserName("");
+    if(userName === "") {
+      props.error("Please populate the username.");
+    } else {
+      props.add(userName);
+      setUserName("");
+    }
   }
 
   const Users = props.users.map(user => <UserRow key={"usermap_" + user.id}>
@@ -109,9 +127,14 @@ const UserWidget = (props) => {
         {Users}
         <UserRow>
           <UserNameCell>
-            Add another: <input type="text" onChange={e => setUserName(e.target.value)} />
-            <Plus src={plusimg} onClick={AddOtherUser}/>
+            Add another user: 
           </UserNameCell>
+          <UserRoleCell>
+            <input type="text" value={userName} onChange={e => setUserName(e.target.value)} />
+          </UserRoleCell>
+          <UserDeleteCell>
+            <Plus src={plusimg} onClick={AddOtherUser}/>
+          </UserDeleteCell>
         </UserRow>
       </UserTable>
     </div>
@@ -141,7 +164,8 @@ export default function AddBoard(props) {
     console.log("Add button clicked", familyName);
     if(familyName === "") {
       // need to throw an error
-      setFormError("Please specify a family group name");
+      //setFormError("Please specify a family group name");
+      dispatch(addError("Please specify the family name."));
     } else {
       if(props.mode === "edit") {
         // this is the edit scenario
@@ -204,6 +228,10 @@ export default function AddBoard(props) {
     }
   }
 
+  const ForwardError = (error) => {
+    dispatch(addError(error));
+  }
+
   return (
     <div>
       <ModalBox show={props.show} close={props.close}>
@@ -220,6 +248,7 @@ export default function AddBoard(props) {
               changeRole={ChangeRole}
               delete={DeleteOtherUser}
               add={AddOtherUser}
+              error={ForwardError}
             />
           </div>}
           {formError && <p ptype="error">{formError}</p>}

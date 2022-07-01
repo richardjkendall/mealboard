@@ -79,7 +79,7 @@ const MealCell = styled(Cell)`
   overflow-y: auto;
 
   &[data-selectedslot="yes"] {
-    background-color: #ADD8E6;
+    background-color: rgba(32, 150, 243, 0.3);
   }
 
   &:first-child {
@@ -113,6 +113,26 @@ const MealsTrayHeader = styled.div`
   margin-bottom: 0px;
   padding-left: 5px;
   align-items: center;
+
+  button {
+    color: #ffffff;
+    background-color: #2196f3;
+    border: none;
+    cursor: pointer;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+
+  button:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 2px 2px #cccccc;
+    background-color: #0d8bf2;
+  }
+
+  button:active {
+    transform: translate(1px, 1px);
+    box-shadow: none;
+  }
 `
 
 const HeaderCellSmall = styled.div`
@@ -151,7 +171,7 @@ const MealsList = styled.div`
 `
 
 const Pill = styled.div`
-  background-color: blue;
+  background-color: #2196f3;
   border-radius: 5px;
   padding: 5px;
   color: white;

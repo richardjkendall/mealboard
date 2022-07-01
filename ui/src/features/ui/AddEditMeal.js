@@ -8,6 +8,7 @@ import {
 
 import ModalBox from './ModalBox';
 import { Form, Block } from './FormWidgets';
+import { addError } from './errorSlice';
 
 export default function AddEditMeal(props) {
   const dispatch = useDispatch();
@@ -27,7 +28,8 @@ export default function AddEditMeal(props) {
     console.log("Add button clicked", mealName);
     if(mealName === "") {
       // need to throw an error
-      setFormError("Please specify a meal name");
+      //setFormError("Please specify a meal name");
+      dispatch(addError("Please specify a meal name"));
     } else {
       dispatch(addMeal({
         meal_name: mealName,

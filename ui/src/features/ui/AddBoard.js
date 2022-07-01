@@ -10,6 +10,7 @@ import {
 
 import ModalBox from './ModalBox';
 import { Form, Block, Checkbox } from './FormWidgets';
+import { addError } from './errorSlice';
 
 export default function AddBoard(props) {
   const dispatch = useDispatch();
@@ -32,7 +33,7 @@ export default function AddBoard(props) {
     console.log("Add button clicked", boardName);
     if(boardName === "") {
       // need to throw an error
-      setFormError("Please specify a board name");
+      dispatch(addError("Please specify a board name."))
     } else {
       if(props.mode === "add") {
         dispatch(addBoard({

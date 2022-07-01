@@ -17,6 +17,8 @@ const CentreBox = styled.div`
   top: 50%;
   transform: translate(-50%, -50%);
   background-color: #ffffff;
+  border-radius: 5px;
+  box-shadow: 5px 5px 10px darkgrey;
   padding: 15px;
   z-index: 20;
 `

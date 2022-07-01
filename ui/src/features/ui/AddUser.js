@@ -10,6 +10,7 @@ import {
 
 import ModalBox from './ModalBox';
 import { Form, Block } from './FormWidgets';
+import { addError } from './errorSlice';
 
 export default function AddUser(props) {
   const dispatch = useDispatch();
@@ -31,10 +32,12 @@ export default function AddUser(props) {
   const Submit = () => {
     if(firstName === "") {
       // need to throw an error
-      setFormError("Please enter your first name");
+      //setFormError("Please enter your first name");
+      dispatch(addError("Please enter your first name"));
     } else {
       if(lastName === "") {
-        setFormError("Please enter your last name")
+        //setFormError("Please enter your last name")
+        dispatch(addError("Please enter your last name"));
       } else {
         if(props.mode === "add" && !invitedUser) {
           dispatch(createUser({

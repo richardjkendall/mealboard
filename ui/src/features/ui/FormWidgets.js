@@ -18,8 +18,15 @@ export const Form = styled.form`
     cursor: pointer;
   }
 
+  button:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 2px 2px #cccccc;
+    background-color: #0d8bf2;
+  }
+
   button:active {
-    transform: translate(2px, 2px);
+    transform: translate(1px, 1px);
+    box-shadow: none;
   }
 
   button:last-child {
