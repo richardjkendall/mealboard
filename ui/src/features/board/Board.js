@@ -246,6 +246,8 @@ export default function Board(props) {
   const [dragMealSlot, setDragMealSlot] = useState("");
   const [displayBoard, setDisplayBoard] = useState(false);
   const [showAddEditMeal, setShowAddEditMeal] = useState(false);
+  const [addMealAfterCreation, setAddMealAfterCreation] = useState(false);
+  const [newMealSlot, setNewMealSlot] = useState({});
   const [selectedMeal, setSelectedMeal] = useState(0);
   const [dragMode, setDragMode] = useState("");
   const [beingDragged, setBeingDragged] = useState(0);
@@ -292,6 +294,7 @@ export default function Board(props) {
   }, [selectedBoard.id, selectedFam.id, selectedWeek.id, selectedFam.family_name, selectedFam.boards, dispatch]);
 
   const startAddMeal = () => {
+    setAddMealAfterCreation(false);
     setShowAddEditMeal(true);
   }
 
@@ -308,6 +311,26 @@ export default function Board(props) {
 
   const closeAddMeal = () => {
     setShowAddEditMeal(false);
+  }
+
+  const addMealFromAddMealEditModal = (meal) => {
+    console.log("adding meal to slot after creation", meal);
+
+    var dayCount = days.findIndex(dayName => dayName === newMealSlot.day) + 1;
+    console.log("day count", dayCount, "start date", selectedWeek.week_start_date);
+    var date = moment(selectedWeek.week_start_date).add(dayCount, 'days');
+    console.log("date for day", date.toISOString().substring(0,"YYYY-MM-DD".length));
+
+    dispatch(addMealToWeek({
+      family_id: selectedFam.id,
+      board_id: selectedBoard.id,
+      week_id: selectedWeek.id,
+      meal_slot: newMealSlot.meal,
+      meal_id: meal.id,
+      day: date.toISOString().substring(0, "YYYY-MM-DD".length)
+    }));
+
+    setAddMealAfterCreation(false);
   }
 
   const onDragEnterMealSlot = (meal, day, e) => {
@@ -396,6 +419,16 @@ export default function Board(props) {
     }
   }
 
+  const AddNewMealToCell = (meal, day, e) => {
+    console.log("double click on meal", meal, "day", day);
+    setAddMealAfterCreation(true);
+    setNewMealSlot({
+      meal: meal,
+      day: day
+    });
+    setShowAddEditMeal(true);
+  }
+
   const DayHeaders = days.map((day, i) => <WeekHeader data-today={moment(selectedWeek.week_start_date).add(i, 'days').format("DD/MM") === moment().format("DD/MM") ? "yes" : "no"} key={"week_" + day}><p>{day}</p><p>{moment(selectedWeek.week_start_date).add(i, 'days').format("DD/MM")}</p></WeekHeader>);
   const MealRows = mealSlots.map(meal => {
     const mealDays = days.map(day => {
@@ -418,6 +451,7 @@ export default function Board(props) {
           onDragLeave={onDragLeaveMealSlot.bind(null, meal, day)}
           onDrop={onDragMealDrop.bind(null, meal, day)}
           onDragOver={(e) => {e.preventDefault()}}
+          onDoubleClick={AddNewMealToCell.bind(null, meal, day)}
           data-selectedslot={dragDay === day && dragMealSlot === meal ? "yes" : "no"}
           key={"mealday_" + meal + "_" + day}
         >
@@ -449,7 +483,12 @@ export default function Board(props) {
           <img alt="bin" src={binimg} onDrop={onDragMealToDelete} onDragOver={(e) => {e.preventDefault()}} />
         </Wastebasket>
       </Blockout>}
-      <AddEditMeal show={showAddEditMeal} close={closeAddMeal} />
+      <AddEditMeal 
+        show={showAddEditMeal} 
+        close={closeAddMeal} 
+        addToSlot={addMealAfterCreation} 
+        addMealToSlotMethod={addMealFromAddMealEditModal}
+      />
       <Row>
         <WeekHeader></WeekHeader>
         {DayHeaders}

@@ -65,7 +65,7 @@ export default function AddBoard(props) {
           <p>{props.mode === "add" ? "Add a" : "Edit"} Board</p>
           <Block>
             <label>Board Name:</label>
-            <input type="text" value={boardName} onChange={(e) => {setBoardName(e.target.value)}} />
+            <input type="text" value={boardName} onChange={(e) => {setBoardName(e.target.value)}} autoFocus/>
           </Block>
           <Block>
             <label>Board is private?</label>

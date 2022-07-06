@@ -68,7 +68,7 @@ export default function AddUser(props) {
           {props.mode === "add" && <p>As this is the first time you've logged in we need to capture some basic details from you.</p>}
           <Block>
             <label>First Name:</label>
-            <input type="text" value={firstName} onChange={(e) => {setFirstName(e.target.value)}} />
+            <input type="text" value={firstName} onChange={(e) => {setFirstName(e.target.value)}} autoFocus/>
           </Block>
           <Block>
             <label>Last Name:</label>

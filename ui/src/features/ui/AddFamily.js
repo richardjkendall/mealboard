@@ -239,7 +239,7 @@ export default function AddBoard(props) {
           <p>{props.mode === "add" ? "Add a" : "Edit"} Family Group</p>
           <Block>
             <label>Family Name:</label>
-            <input type="text" value={familyName} onChange={(e) => {setFamilyName(e.target.value)}} />
+            <input type="text" value={familyName} onChange={(e) => {setFamilyName(e.target.value)}} autoFocus/>
           </Block>
           {props.mode === "edit" && <div>
             <p style={{marginTop: "10px", marginBottom: "10px"}}>Other Users</p>
