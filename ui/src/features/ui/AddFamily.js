@@ -232,6 +232,14 @@ export default function AddBoard(props) {
     dispatch(addError(error));
   }
 
+  const HandleKeypress = (e) => {
+    if(e.key === "Enter") {
+      console.log("captured enter key")
+      e.preventDefault();
+      Submit();
+    }
+  }
+
   return (
     <div>
       <ModalBox show={props.show} close={props.close}>
@@ -239,7 +247,7 @@ export default function AddBoard(props) {
           <p>{props.mode === "add" ? "Add a" : "Edit"} Family Group</p>
           <Block>
             <label>Family Name:</label>
-            <input type="text" value={familyName} onChange={(e) => {setFamilyName(e.target.value)}} autoFocus/>
+            <input type="text" value={familyName} onChange={(e) => {setFamilyName(e.target.value)}} onKeyPress={HandleKeypress} autoFocus/>
           </Block>
           {props.mode === "edit" && <div>
             <p style={{marginTop: "10px", marginBottom: "10px"}}>Other Users</p>

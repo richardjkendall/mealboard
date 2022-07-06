@@ -58,6 +58,14 @@ export default function AddBoard(props) {
     props.close("cancel");
   }
 
+  const HandleKeypress = (e) => {
+    if(e.key === "Enter") {
+      console.log("captured enter key")
+      e.preventDefault();
+      Submit();
+    }
+  }
+
   return (
     <div>
       <ModalBox show={props.show} close={props.close}>
@@ -65,7 +73,7 @@ export default function AddBoard(props) {
           <p>{props.mode === "add" ? "Add a" : "Edit"} Board</p>
           <Block>
             <label>Board Name:</label>
-            <input type="text" value={boardName} onChange={(e) => {setBoardName(e.target.value)}} autoFocus/>
+            <input type="text" value={boardName} onChange={(e) => {setBoardName(e.target.value)}} onKeyPress={HandleKeypress} autoFocus/>
           </Block>
           <Block>
             <label>Board is private?</label>

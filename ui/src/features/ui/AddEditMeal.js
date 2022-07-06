@@ -75,6 +75,14 @@ export default function AddEditMeal(props) {
     props.close("cancel");
   }
 
+  const HandleKeypress = (e) => {
+    if(e.key === "Enter") {
+      console.log("captured enter key")
+      e.preventDefault();
+      Submit();
+    }
+  }
+
   return (
     <div>
       <ModalBox show={props.show} close={props.close}>
@@ -82,7 +90,7 @@ export default function AddEditMeal(props) {
           <p>Add a Meal</p>
           <Block>
             <label>Meal Name:</label>
-            <input type="text" value={mealName} onChange={(e) => {setMealName(e.target.value)}} autoFocus/>
+            <input type="text" value={mealName} onChange={(e) => {setMealName(e.target.value)}} onKeyPress={HandleKeypress} autoFocus/>
           </Block>
           {formError && <p ptype="error">{formError}</p>}
           <button type="button" onClick={Submit}>Add</button>
