@@ -11,9 +11,10 @@ class MealModel(db.Model):
     family_id = db.Column(db.Integer, db.ForeignKey('family.id'), index=True, nullable=False)
     family = db.relationship('FamilyModel', backref=db.backref('meals', lazy=True))
     portions = db.Column(db.Integer, nullable=True)
+    colour = db.Column(db.String(10), nullable=True)
 
 class MealSchema(ma.Schema):
     ingredients = fields.Nested(IngredientSchema, many=True)
 
     class Meta:
-        fields = ('id', 'meal_name', 'family_id', 'portions', 'ingredients')
+        fields = ('id', 'meal_name', 'family_id', 'portions', 'ingredients', 'colour')

@@ -65,14 +65,12 @@ def get_family(username, groupds, user_id, family_id):
 @secured
 @valid_user
 @user_can_edit_family
+@must_be_json
 def edit_family(username, groups, user_id, family_id):
   # get the family, must be the owner to make these changes
   family = FamilyModel.query.get_or_404(family_id)
   if not family.primary_user_id == user_id:
     raise ObjectNotFoundException("Only family owner can edit a family")
-  if not request.json:
-    logger.info("Request is not JSON")
-    raise BadRequestException("Request should be JSON")
   else:
     if "family_name" in request.json:
       setattr(family, "family_name", request.json["family_name"])
@@ -130,6 +128,8 @@ def create_meal(username, groups, user_id, family_id):
     meal_name = request.json["meal_name"],
     family_id = family.id
   )
+  if "colour" in request.json:
+    setattr(new_meal, "colour", request.json["colour"])
   if "portions" in request.json:
     setattr(new_meal, "portions", request.json["portions"])
   if "ingredients" in request.json:
@@ -144,6 +144,25 @@ def create_meal(username, groups, user_id, family_id):
   db.session.commit()
   meal = MealModel.query.get(new_meal.id)
   return meal_schema.jsonify(meal)
+
+@family.route("/<int:family_id>/meal/<int:meal_id>", methods=["PATCH"])
+@error_handler
+@secured
+@valid_user
+@user_can_edit_family
+@must_be_json
+def edit_meal(username, groups, user_id, family_id, meal_id):
+  meal = MealModel.query.filter(MealModel.family_id == family_id, MealModel.id == meal_id).first()
+  if not meal:
+    raise ObjectNotFoundException("Meal not found")
+  if "meal_name" in request.json:
+    setattr(meal, "meal_name", request.json["meal_name"])
+  if "colour" in request.json:
+    setattr(meal, "colour", request.json["colour"])
+  db.session.commit()
+  meal = MealModel.query.get(meal.id)
+  return meal_schema.jsonify(meal)
+  
 
 @family.route("/<int:family_id>/other_users", methods=["GET"])
 @error_handler

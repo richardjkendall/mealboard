@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
 
 const Blockout = styled.div`
@@ -24,6 +24,20 @@ const CentreBox = styled.div`
 `
 
 export default function ModalBox(props) {
+
+  const HandleKeypress = (e) => {
+    if(e.key === "Escape") {
+      CloseBox();
+    }
+  }
+
+  useEffect(() => {
+    window.addEventListener('keydown', HandleKeypress);
+
+    return () => {
+      window.removeEventListener('keydown', HandleKeypress);
+    }
+  })
 
   const CloseBox = (reason) => {
     props.close(reason);

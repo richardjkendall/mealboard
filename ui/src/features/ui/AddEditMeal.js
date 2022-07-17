@@ -7,8 +7,30 @@ import {
 } from '../family/familySlice';
 
 import ModalBox from './ModalBox';
-import { Form, Block } from './FormWidgets';
+import { Form, Block, ColourDropDown } from './FormWidgets';
 import { addError } from './errorSlice';
+import styled from 'styled-components';
+
+const ColourPickerContainer = styled.div`
+  display: flex;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-weight: normal;
+
+  label {
+    width: 150px;
+  }
+`
+
+const ColourPicker = () => {
+
+  return (
+    <ColourPickerContainer>
+      <label>Colour:</label>
+      <ColourDropDown />
+    </ColourPickerContainer>
+  )
+}
 
 export default function AddEditMeal(props) {
   const dispatch = useDispatch();
@@ -92,6 +114,7 @@ export default function AddEditMeal(props) {
             <label>Meal Name:</label>
             <input type="text" value={mealName} onChange={(e) => {setMealName(e.target.value)}} onKeyPress={HandleKeypress} autoFocus/>
           </Block>
+          <ColourPicker />
           {formError && <p ptype="error">{formError}</p>}
           <button type="button" onClick={Submit}>Add</button>
           <button type="button" onClick={Cancel}>Close</button>
